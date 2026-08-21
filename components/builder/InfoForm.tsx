@@ -5,9 +5,19 @@ import { z } from 'zod';
 import type { CardData } from '@/lib/templates/types';
 
 interface InfoFormProps {
+  /**
+   * Initial field values. This seeds the form's own local state once, on mount —
+   * it is deliberately NOT kept in sync afterwards. Binding the inputs straight
+   * to server state made typing impossible: every keystroke round-tripped to
+   * PATCH, and any rejected intermediate value (e.g. "j" while typing an email)
+   * caused React to revert the DOM to the last accepted server value.
+   */
   data: Partial<CardData>;
+  /** Called on every keystroke with the changed field. The parent debounces persistence. */
   onChange: (patch: Partial<CardData>) => void;
   onLogoUpload: (file: File) => void;
+  /** Whether the selected template renders a logo (template.customizable.logo). */
+  allowLogo?: boolean;
 }
 
 const FIELD_ERRORS: Record<string, string> = {
@@ -29,8 +39,11 @@ const validators: Record<string, z.ZodTypeAny> = {
   messenger: z.string().url(),
 };
 
-export function InfoForm({ data, onChange, onLogoUpload }: InfoFormProps) {
+export function InfoForm({ data, onChange, onLogoUpload, allowLogo = true }: InfoFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Local, always-optimistic copy of the field values: typing is never blocked
+  // on (or reverted by) a network round-trip.
+  const [values, setValues] = useState<Partial<CardData>>(data);
 
   function validateField(name: keyof CardData, value: string): string {
     if (!value) {
@@ -48,8 +61,12 @@ export function InfoForm({ data, onChange, onLogoUpload }: InfoFormProps) {
 
   function field(name: keyof CardData) {
     return {
-      value: data[name] ?? '',
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) => onChange({ [name]: e.target.value }),
+      value: values[name] ?? '',
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setValues(prev => ({ ...prev, [name]: value }));
+        onChange({ [name]: value } as Partial<CardData>);
+      },
       onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
         const error = validateField(name, e.target.value);
         setErrors(prev => ({ ...prev, [name]: error }));
@@ -81,18 +98,20 @@ export function InfoForm({ data, onChange, onLogoUpload }: InfoFormProps) {
           <input aria-label="Website" {...field('website')} />
           {errors.website && <span role="alert">{errors.website}</span>}
         </label>
-        <label>
-          Company logo
-          <input
-            aria-label="Company logo"
-            type="file"
-            accept="image/*"
-            onChange={e => {
-              const file = e.target.files?.[0];
-              if (file) onLogoUpload(file);
-            }}
-          />
-        </label>
+        {allowLogo && (
+          <label>
+            Company logo
+            <input
+              aria-label="Company logo"
+              type="file"
+              accept="image/*"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) onLogoUpload(file);
+              }}
+            />
+          </label>
+        )}
         <label>Facebook<input aria-label="Facebook" {...field('facebook')} /></label>
         <label>LinkedIn<input aria-label="LinkedIn" {...field('linkedin')} /></label>
         <label>Instagram<input aria-label="Instagram" {...field('instagram')} /></label>

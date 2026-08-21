@@ -66,4 +66,70 @@ describe('BuilderWizard', () => {
     expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument();
     expect(screen.getByText(/Job Title/)).toBeInTheDocument();
   });
+
+  it('keeps every character when typing an email the server rejects until complete', async () => {
+    // Mirrors the real API: every partial value ("j", "ju", …) fails email
+    // validation and 400s. Typing must still be preserved character by
+    // character rather than being reverted by the rejected round-trips.
+    server.use(
+      http.patch('/api/drafts/draft-1', async ({ request }) => {
+        const patch = (await request.json()) as Record<string, unknown>;
+        const email = patch.email;
+        if (typeof email === 'string' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+          return HttpResponse.json({ error: 'Invalid' }, { status: 400 });
+        }
+        return HttpResponse.json({ ...draft, ...patch });
+      })
+    );
+
+    render(<BuilderWizard draftId="draft-1" />);
+    await waitFor(() => screen.getByLabelText('Email'));
+    const emailInput = screen.getByLabelText('Email') as HTMLInputElement;
+
+    // Character by character — not a single fireEvent.change with the whole value.
+    await userEvent.type(emailInput, 'juan@abc.com');
+
+    await waitFor(() => expect(emailInput.value).toBe('juan@abc.com'));
+    expect(emailInput.value).toBe('juan@abc.com');
+  });
+
+  it('keeps every character of a name typed one key at a time', async () => {
+    render(<BuilderWizard draftId="draft-1" />);
+    await waitFor(() => screen.getByLabelText('First name'));
+    const firstName = screen.getByLabelText('First name') as HTMLInputElement;
+
+    await userEvent.type(firstName, 'Juan');
+
+    await waitFor(() => expect(screen.getByText('Juan Last Name')).toBeInTheDocument());
+    expect(firstName.value).toBe('Juan');
+  });
+
+  it('shows a not-found state instead of crashing when the draft fetch fails', async () => {
+    server.use(
+      http.get('/api/drafts/draft-1', () => HttpResponse.json({ error: 'Not found' }, { status: 404 }))
+    );
+    render(<BuilderWizard draftId="draft-1" />);
+    await waitFor(() => expect(screen.getByText(/couldn't find that card/i)).toBeInTheDocument());
+  });
+
+  it('surfaces a visible error when a patch is rejected', async () => {
+    server.use(
+      http.patch('/api/drafts/draft-1', () => HttpResponse.json({ error: 'Invalid' }, { status: 400 }))
+    );
+    render(<BuilderWizard draftId="draft-1" />);
+    await waitFor(() => screen.getByLabelText('First name'));
+    await userEvent.type(screen.getByLabelText('First name'), 'x');
+    await waitFor(() => expect(screen.getByText(/couldn't save your latest changes/i)).toBeInTheDocument());
+  });
+
+  it('hides the logo upload field for a template that never renders a logo', async () => {
+    server.use(
+      http.get('/api/drafts/draft-1', () =>
+        HttpResponse.json({ ...draft, templateId: 'minimal-vertical' })
+      )
+    );
+    render(<BuilderWizard draftId="draft-1" />);
+    await waitFor(() => screen.getByLabelText('First name'));
+    expect(screen.queryByLabelText('Company logo')).not.toBeInTheDocument();
+  });
 });
