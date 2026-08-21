@@ -7,6 +7,8 @@ import { ModernVertical } from '@/components/templates/ModernVertical';
 import { ModernHorizontal } from '@/components/templates/ModernHorizontal';
 import { MinimalVertical } from '@/components/templates/MinimalVertical';
 import { MinimalHorizontal } from '@/components/templates/MinimalHorizontal';
+import { ExecutiveVertical } from '@/components/templates/ExecutiveVertical';
+import { CreativeHorizontal } from '@/components/templates/CreativeHorizontal';
 
 export const templates: TemplateDefinition[] = [];
 
@@ -83,6 +85,25 @@ templates.push(
     orientation: 'horizontal',
     customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: false },
     component: MinimalHorizontal,
+  }
+);
+
+templates.push(
+  {
+    id: 'executive-vertical',
+    name: 'Executive',
+    category: 'executive',
+    orientation: 'vertical',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
+    component: ExecutiveVertical,
+  },
+  {
+    id: 'creative-horizontal',
+    name: 'Creative',
+    category: 'creative',
+    orientation: 'horizontal',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
+    component: CreativeHorizontal,
   }
 );
 
