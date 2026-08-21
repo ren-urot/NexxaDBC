@@ -44,6 +44,9 @@ export async function GET(req: NextRequest) {
       try {
         await deleteLogo(row.logoUrl);
         deletedLogoCount++;
+        // The blob is gone — null out the column so the row doesn't keep
+        // pointing at a deleted file.
+        await db.update(cardDrafts).set({ logoUrl: null }).where(eq(cardDrafts.id, row.id));
       } catch (err) {
         console.error(`Failed to delete logo blob for draft ${row.id}`, err);
       }

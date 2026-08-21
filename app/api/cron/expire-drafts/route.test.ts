@@ -70,6 +70,34 @@ describe('GET /api/cron/expire-drafts', () => {
     expect(deleteLogo).toHaveBeenCalledWith('https://blob.example.com/logos/one.png');
   });
 
+  it('nulls out logo_url after successfully deleting the blob, so the row stops pointing at a deleted file', async () => {
+    const withLogo = await makeStaleDraft();
+    await updateDraft(withLogo.id, { logoUrl: 'https://blob.example.com/logos/one.png' });
+    await db
+      .update(cardDrafts)
+      .set({ updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 72) })
+      .where(eq(cardDrafts.id, withLogo.id));
+
+    await GET(cronRequest());
+
+    expect((await getDraftById(withLogo.id))?.logoUrl).toBeNull();
+  });
+
+  it('leaves logo_url intact when the blob delete fails', async () => {
+    vi.mocked(deleteLogo).mockRejectedValueOnce(new Error('blob delete failed'));
+    const withLogo = await makeStaleDraft();
+    await updateDraft(withLogo.id, { logoUrl: 'https://blob.example.com/logos/one.png' });
+    await db
+      .update(cardDrafts)
+      .set({ updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 72) })
+      .where(eq(cardDrafts.id, withLogo.id));
+
+    const res = await GET(cronRequest());
+
+    expect(res.status).toBe(200);
+    expect((await getDraftById(withLogo.id))?.logoUrl).toBe('https://blob.example.com/logos/one.png');
+  });
+
   it('rejects a request without the cron secret when one is configured', async () => {
     process.env.CRON_SECRET = 'top-secret';
     const res = await GET(cronRequest());
