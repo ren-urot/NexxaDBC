@@ -1,6 +1,27 @@
 import type { TemplateDefinition, Orientation, TemplateCategory } from './types';
+import { CorporateVertical } from '@/components/templates/CorporateVertical';
+import { CorporateHorizontal } from '@/components/templates/CorporateHorizontal';
 
 export const templates: TemplateDefinition[] = [];
+
+templates.push(
+  {
+    id: 'corporate-vertical',
+    name: 'Corporate',
+    category: 'corporate',
+    orientation: 'vertical',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
+    component: CorporateVertical,
+  },
+  {
+    id: 'corporate-horizontal',
+    name: 'Corporate',
+    category: 'corporate',
+    orientation: 'horizontal',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
+    component: CorporateHorizontal,
+  }
+);
 
 export function filterTemplates(
   all: TemplateDefinition[],
