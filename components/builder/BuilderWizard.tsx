@@ -38,6 +38,7 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(body),
     });
+    if (!res.ok) return;
     setDraft(await res.json());
   }
 
@@ -45,11 +46,13 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
     const form = new FormData();
     form.set('file', file);
     const res = await fetch(`/api/drafts/${draftId}/logo`, { method: 'POST', body: form });
+    if (!res.ok) return;
     setDraft(await res.json());
   }
 
   async function handleSubmit() {
     const res = await fetch(`/api/drafts/${draftId}/submit`, { method: 'POST' });
+    if (!res.ok) return;
     setDraft(await res.json());
     router.push(`/builder/${draftId}/submitted`);
   }

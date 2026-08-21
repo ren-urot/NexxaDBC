@@ -50,4 +50,20 @@ describe('BuilderWizard', () => {
     await userEvent.click(screen.getByRole('button', { name: /continue/i }));
     await waitFor(() => expect(screen.getByText(/submitted/i)).toBeInTheDocument());
   });
+
+  it('does not corrupt draft state or crash when a PATCH fails validation', async () => {
+    server.use(
+      http.patch('/api/drafts/draft-1', () => HttpResponse.json({ error: 'Invalid' }, { status: 400 }))
+    );
+    render(<BuilderWizard draftId="draft-1" />);
+    await waitFor(() => screen.getByLabelText('First name'));
+    await userEvent.type(screen.getByLabelText('First name'), 'x');
+
+    // The failed PATCH must not clobber `draft` with the { error } body — the
+    // form and preview should still be rendered (no uncaught render-phase
+    // exception from getTemplate(undefined) unmounting the tree).
+    await waitFor(() => expect(screen.getByLabelText('First name')).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument();
+    expect(screen.getByText(/Job Title/)).toBeInTheDocument();
+  });
 });
