@@ -5,6 +5,8 @@ import { ProfessionalVertical } from '@/components/templates/ProfessionalVertica
 import { ProfessionalHorizontal } from '@/components/templates/ProfessionalHorizontal';
 import { ModernVertical } from '@/components/templates/ModernVertical';
 import { ModernHorizontal } from '@/components/templates/ModernHorizontal';
+import { MinimalVertical } from '@/components/templates/MinimalVertical';
+import { MinimalHorizontal } from '@/components/templates/MinimalHorizontal';
 
 export const templates: TemplateDefinition[] = [];
 
@@ -62,6 +64,25 @@ templates.push(
     orientation: 'horizontal',
     customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
     component: ModernHorizontal,
+  }
+);
+
+templates.push(
+  {
+    id: 'minimal-vertical',
+    name: 'Minimal',
+    category: 'minimal',
+    orientation: 'vertical',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: false },
+    component: MinimalVertical,
+  },
+  {
+    id: 'minimal-horizontal',
+    name: 'Minimal',
+    category: 'minimal',
+    orientation: 'horizontal',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: false },
+    component: MinimalHorizontal,
   }
 );
 
