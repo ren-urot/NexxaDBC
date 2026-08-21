@@ -16,17 +16,24 @@ export default function Error({
   }, [error]);
 
   return (
-    <main className="max-w-xl mx-auto p-8 space-y-4">
-      <h1 className="text-2xl font-bold">Something went wrong</h1>
-      <p className="text-gray-600">
+    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-4 px-6 py-24">
+      <p className="font-mono text-xs uppercase tracking-[0.2em] text-scan">Press error</p>
+      <h1 className="font-display text-3xl font-medium text-ink">Something went wrong</h1>
+      <p className="text-ink-soft">
         We hit an unexpected problem. Your card draft is saved — try again, or start over from the
         template gallery.
       </p>
-      <div className="flex gap-4">
-        <button className="px-4 py-2 bg-black text-white rounded" onClick={() => retry()}>
+      <div className="mt-2 flex items-center gap-6">
+        <button
+          onClick={() => retry()}
+          className="rounded-full bg-ink px-5 py-2.5 font-medium text-paper transition-colors hover:bg-ink/90"
+        >
           Try again
         </button>
-        <Link className="px-4 py-2 underline" href="/templates">
+        <Link
+          href="/templates"
+          className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan"
+        >
           Browse templates
         </Link>
       </div>

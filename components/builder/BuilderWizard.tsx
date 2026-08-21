@@ -246,29 +246,40 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
 
   if (loadFailed) {
     return (
-      <div className="space-y-4" role="alert">
-        <h1 className="text-2xl font-bold">We couldn&apos;t find that card</h1>
-        <p className="text-gray-600">
-          This draft may have expired, or the link may be incorrect.
-        </p>
-        <Link className="underline" href="/templates">
-          Start a new card
+      <div className="max-w-md space-y-4" role="alert">
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-scan">Proof unavailable</p>
+        <h1 className="font-display text-3xl font-medium text-ink">We couldn&apos;t find that card</h1>
+        <p className="text-ink-soft">This draft may have expired, or the link may be incorrect.</p>
+        <Link
+          href="/templates"
+          className="inline-block font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan"
+        >
+          Start a new card →
         </Link>
       </div>
     );
   }
 
-  if (!draft) return <p>Loading…</p>;
-  if (draft.status === 'submitted') return <p>Your card has been submitted.</p>;
+  if (!draft) return <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">Loading…</p>;
+  if (draft.status === 'submitted')
+    return (
+      <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">
+        Your card has been submitted.
+      </p>
+    );
 
   const template = findTemplate(draft.templateId);
   if (!template) {
     return (
-      <div className="space-y-4" role="alert">
-        <h1 className="text-2xl font-bold">This card can&apos;t be edited</h1>
-        <p className="text-gray-600">Its template is no longer available.</p>
-        <Link className="underline" href="/templates">
-          Start a new card
+      <div className="max-w-md space-y-4" role="alert">
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-scan">Proof unavailable</p>
+        <h1 className="font-display text-3xl font-medium text-ink">This card can&apos;t be edited</h1>
+        <p className="text-ink-soft">Its template is no longer available.</p>
+        <Link
+          href="/templates"
+          className="inline-block font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan"
+        >
+          Start a new card →
         </Link>
       </div>
     );
@@ -279,27 +290,44 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
   const style: StyleOverrides = { ...draft.styleOverrides, ...(pendingStyle ?? {}) };
 
   return (
-    <div className="grid grid-cols-2 gap-8">
-      <div className="space-y-8">
-        {error && (
-          <p role="alert" className="text-sm text-red-600">
-            {error}
-          </p>
-        )}
-        <InfoForm
-          data={data}
-          allowLogo={template.customizable.logo}
-          onChange={queuePatch}
-          onLogoUpload={handleLogoUpload}
-        />
-        <CustomizePanel
-          template={template}
-          style={style}
-          onChange={stylePatch => queuePatch({ styleOverrides: { ...style, ...stylePatch } })}
-        />
-        <button onClick={handleSubmit}>Continue / Get My Digital Card</button>
+    <div>
+      <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">
+        Job ticket · {template.name}
+      </p>
+      <h1 className="mb-10 font-display text-4xl font-medium tracking-tight text-ink">
+        Fill in the plate.
+      </h1>
+      {error && (
+        <p role="alert" className="mb-8 max-w-lg rounded-sm border border-ink/20 bg-stock px-4 py-3 text-sm text-ink">
+          {error}
+        </p>
+      )}
+      <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="space-y-10">
+          <InfoForm
+            data={data}
+            allowLogo={template.customizable.logo}
+            onChange={queuePatch}
+            onLogoUpload={handleLogoUpload}
+          />
+          <CustomizePanel
+            template={template}
+            style={style}
+            onChange={stylePatch => queuePatch({ styleOverrides: { ...style, ...stylePatch } })}
+          />
+          <hr className="border-t border-line" />
+          <button
+            onClick={handleSubmit}
+            className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 font-medium text-paper transition-colors hover:bg-ink/90"
+          >
+            Continue / Get My Digital Card
+            <span aria-hidden className="text-scan">→</span>
+          </button>
+        </div>
+        <div className="lg:sticky lg:top-16 lg:self-start">
+          <LivePreview templateId={draft.templateId} data={data} style={style} />
+        </div>
       </div>
-      <LivePreview templateId={draft.templateId} data={data} style={style} />
     </div>
   );
 }

@@ -24,7 +24,10 @@ export function LivePreview({
   } as CardData;
 
   return (
-    <PhoneFrame orientation={template.orientation}>
+    <PhoneFrame
+      orientation={template.orientation}
+      label={`Proof · ${template.name} · ${template.orientation}`}
+    >
       <Component data={previewData} style={style} />
     </PhoneFrame>
   );

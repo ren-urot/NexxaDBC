@@ -37,14 +37,21 @@ export default function TemplatesPage() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">Choose a template</h1>
+    <main className="mx-auto w-full max-w-4xl px-6 py-16 sm:px-10">
+      <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Specimen book</p>
+      <h1 className="font-display text-4xl font-medium tracking-tight text-ink">Choose your stock.</h1>
+      <p className="mt-3 max-w-lg text-ink-soft">
+        Ten templates, five houses, two formats. Every proof below is the real thing — no
+        placeholders swapped in later.
+      </p>
       {error && (
-        <p role="alert" className="mb-4 text-sm text-red-600">
+        <p role="alert" className="mt-4 rounded-sm border border-ink/20 bg-stock px-4 py-3 text-sm text-ink">
           {error}
         </p>
       )}
-      <TemplateGallery onSelect={handleSelect} />
+      <div className="mt-10">
+        <TemplateGallery onSelect={handleSelect} />
+      </div>
     </main>
   );
 }

@@ -1,26 +1,87 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/*
+ * Proof-sheet palette: cool bone cardstock + cool near-black ink + one teal
+ * "scan" accent marking the moment a printed thing becomes a digital one.
+ * Deliberately not warm cream/terracotta, not dark-mode-first.
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: #eeeae1;
+  --color-ink: #17191d;
+  --color-ink-soft: #4a4a46;
+  --color-scan: #1fa6a0;
+  --color-line: #d8d2c4;
+  --color-stock: #ffffff;
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-scan);
+  color: var(--color-stock);
+}
+
+/* Registration crop marks — the recurring "proof" motif around every live
+   card preview. Four independent corners (a pseudo-element pair can't cover
+   all four), each a short two-line L drawn just outside the card's edge. */
+.crop-mark {
+  position: absolute;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-color: var(--color-ink);
+  opacity: 0.55;
+}
+.crop-mark--tl {
+  top: -0.55rem;
+  left: -0.55rem;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+.crop-mark--tr {
+  top: -0.55rem;
+  right: -0.55rem;
+  border-top: 1px solid;
+  border-right: 1px solid;
+}
+.crop-mark--bl {
+  bottom: -0.55rem;
+  left: -0.55rem;
+  border-bottom: 1px solid;
+  border-left: 1px solid;
+}
+.crop-mark--br {
+  bottom: -0.55rem;
+  right: -0.55rem;
+  border-bottom: 1px solid;
+  border-right: 1px solid;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-up {
+    animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

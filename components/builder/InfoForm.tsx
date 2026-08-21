@@ -39,6 +39,10 @@ const validators: Record<string, z.ZodTypeAny> = {
   messenger: z.string().url(),
 };
 
+const inputClass =
+  'mt-1.5 w-full rounded-xs border-b border-line bg-transparent py-1.5 text-[15px] text-ink placeholder:text-ink-soft/50 focus:border-scan focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan';
+const microLabelClass = 'font-mono text-[10px] uppercase tracking-[0.16em] text-ink-soft';
+
 export function InfoForm({ data, onChange, onLogoUpload, allowLogo = true }: InfoFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   // Local, always-optimistic copy of the field values: typing is never blocked
@@ -74,49 +78,69 @@ export function InfoForm({ data, onChange, onLogoUpload, allowLogo = true }: Inf
     };
   }
 
+  // A plain helper that returns JSX (not a component invoked as `<X />`), so
+  // it doesn't get a fresh identity — and therefore a remounted <input> that
+  // loses focus mid-keystroke — on every render the way a component defined
+  // inside another component's body would.
+  function renderField(label: string, name: keyof CardData) {
+    const errorText = errors[name as string];
+    return (
+      <label key={name} className="block">
+        <span className={microLabelClass}>{label}</span>
+        <input aria-label={label} className={inputClass} {...field(name)} />
+        {errorText && (
+          <span role="alert" className="mt-1 block text-xs text-[#b3452c]">
+            {errorText}
+          </span>
+        )}
+      </label>
+    );
+  }
+
   return (
-    <form className="space-y-4">
-      <fieldset className="space-y-3">
-        <legend className="font-semibold">Required</legend>
-        <label>First name<input aria-label="First name" {...field('firstName')} /></label>
-        <label>Last name<input aria-label="Last name" {...field('lastName')} /></label>
-        <label>Job title<input aria-label="Job title" {...field('jobTitle')} /></label>
-        <label>Company<input aria-label="Company" {...field('company')} /></label>
-        <label>Mobile number<input aria-label="Mobile number" {...field('mobile')} /></label>
-        <label>
-          Email
-          <input aria-label="Email" {...field('email')} />
-          {errors.email && <span role="alert">{errors.email}</span>}
-        </label>
+    <form className="space-y-10">
+      <fieldset className="space-y-5">
+        <legend className="mb-1 font-mono text-xs uppercase tracking-[0.18em] text-scan">
+          Required — the plate
+        </legend>
+        <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+          {renderField('First name', 'firstName')}
+          {renderField('Last name', 'lastName')}
+          {renderField('Job title', 'jobTitle')}
+          {renderField('Company', 'company')}
+          {renderField('Mobile number', 'mobile')}
+          {renderField('Email', 'email')}
+        </div>
       </fieldset>
 
-      <fieldset className="space-y-3">
-        <legend className="font-semibold">Optional</legend>
-        <label>Address<input aria-label="Address" {...field('address')} /></label>
-        <label>
-          Website
-          <input aria-label="Website" {...field('website')} />
-          {errors.website && <span role="alert">{errors.website}</span>}
-        </label>
-        {allowLogo && (
-          <label>
-            Company logo
-            <input
-              aria-label="Company logo"
-              type="file"
-              accept="image/*"
-              onChange={e => {
-                const file = e.target.files?.[0];
-                if (file) onLogoUpload(file);
-              }}
-            />
-          </label>
-        )}
-        <label>Facebook<input aria-label="Facebook" {...field('facebook')} /></label>
-        <label>LinkedIn<input aria-label="LinkedIn" {...field('linkedin')} /></label>
-        <label>Instagram<input aria-label="Instagram" {...field('instagram')} /></label>
-        <label>WhatsApp<input aria-label="WhatsApp" {...field('whatsapp')} /></label>
-        <label>Messenger<input aria-label="Messenger" {...field('messenger')} /></label>
+      <fieldset className="space-y-5">
+        <legend className="mb-1 font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">
+          Optional — finishing
+        </legend>
+        <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+          {renderField('Address', 'address')}
+          {renderField('Website', 'website')}
+          {allowLogo && (
+            <label className="block">
+              <span className={microLabelClass}>Company logo</span>
+              <input
+                aria-label="Company logo"
+                type="file"
+                accept="image/*"
+                className="mt-1.5 block w-full text-sm text-ink-soft file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1.5 file:font-mono file:text-[11px] file:uppercase file:tracking-[0.1em] file:text-paper"
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) onLogoUpload(file);
+                }}
+              />
+            </label>
+          )}
+          {renderField('Facebook', 'facebook')}
+          {renderField('LinkedIn', 'linkedin')}
+          {renderField('Instagram', 'instagram')}
+          {renderField('WhatsApp', 'whatsapp')}
+          {renderField('Messenger', 'messenger')}
+        </div>
       </fieldset>
     </form>
   );
