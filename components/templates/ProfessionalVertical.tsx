@@ -1,5 +1,5 @@
 import type { TemplateProps } from '@/lib/templates/types';
-import { fontSizeClass, resolveAccentColor } from '@/lib/templates/style-utils';
+import { fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
 
 export function ProfessionalVertical({ data, style }: TemplateProps) {
   const accent = resolveAccentColor(style, '#334155');
@@ -25,7 +25,7 @@ export function ProfessionalVertical({ data, style }: TemplateProps) {
           {data.linkedin && <a href={data.linkedin} aria-label="LinkedIn">LinkedIn</a>}
           {data.facebook && <a href={data.facebook} aria-label="Facebook">Facebook</a>}
           {data.instagram && <a href={data.instagram} aria-label="Instagram">Instagram</a>}
-          {data.whatsapp && <a href={data.whatsapp} aria-label="WhatsApp">WhatsApp</a>}
+          {data.whatsapp && <a href={whatsappUrl(data.whatsapp)} aria-label="WhatsApp">WhatsApp</a>}
           {data.messenger && <a href={data.messenger} aria-label="Messenger">Messenger</a>}
         </div>
       </div>

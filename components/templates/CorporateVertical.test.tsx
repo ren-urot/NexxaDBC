@@ -26,6 +26,14 @@ describe('CorporateVertical', () => {
     expect(screen.getByRole('link', { name: /linkedin/i })).toHaveAttribute('href', 'https://linkedin.com/in/juan');
   });
 
+  it('renders the WhatsApp phone number as a wa.me link, not a relative href', () => {
+    render(<CorporateVertical data={{ ...required, whatsapp: '+63 917 123 4567' }} style={{}} />);
+    expect(screen.getByRole('link', { name: /whatsapp/i })).toHaveAttribute(
+      'href',
+      'https://wa.me/639171234567'
+    );
+  });
+
   it('applies an accent color override', () => {
     const { container } = render(<CorporateVertical data={required} style={{ accentColor: '#ff0000' }} />);
     const root = container.firstElementChild as HTMLElement;
