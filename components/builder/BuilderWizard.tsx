@@ -67,6 +67,30 @@ function findTemplate(id: string): TemplateDefinition | null {
   return templates.find(t => t.id === id) ?? null;
 }
 
+const REQUIRED_FIELD_KEYS = ['firstName', 'lastName', 'jobTitle', 'company', 'mobile'] as const;
+
+/**
+ * Required fields correctly reject '' at the schema level — you can't submit
+ * a card with a blank first name — but the app shouldn't attempt to persist
+ * an admittedly-invalid intermediate value in the first place. Without this,
+ * clearing a required field (e.g. to retype a typo) queues a PATCH that
+ * 400s, and the failed patch sits in pendingRef forever: every later
+ * debounced flush (including the one handleSubmit awaits) resends the same
+ * doomed patch and Continue never works again for that draft session. Same
+ * mechanical bug as the optional-field fix in 2f6ca93, one layer upstream —
+ * relaxing validation isn't an option here since empty genuinely is invalid
+ * for these fields. InfoForm's own local `values` state is untouched by
+ * this: the user still sees the field go visually empty, only the network
+ * write for that key is skipped while it's empty.
+ */
+function stripEmptyRequiredFields(patch: PatchBody): PatchBody {
+  const next = { ...patch } as Record<string, unknown>;
+  for (const key of REQUIRED_FIELD_KEYS) {
+    if (next[key] === '') delete next[key];
+  }
+  return next as PatchBody;
+}
+
 export function BuilderWizard({ draftId }: { draftId: string }) {
   const router = useRouter();
   const [draft, setDraft] = useState<DraftState | null>(null);
@@ -164,7 +188,11 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
 
   const queuePatch = useCallback(
     (patch: PatchBody) => {
-      pendingRef.current = mergePatch(pendingRef.current, patch);
+      const filtered = stripEmptyRequiredFields(patch);
+      // Nothing left to persist (e.g. the whole patch was a required field
+      // cleared to '') — leave pendingRef/the debounce timer untouched.
+      if (Object.keys(filtered).length === 0) return;
+      pendingRef.current = mergePatch(pendingRef.current, filtered);
       setPending(pendingRef.current);
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
