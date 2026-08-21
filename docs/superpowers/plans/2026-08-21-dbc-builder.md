@@ -121,7 +121,7 @@ Edit `package.json` `scripts` to include:
 Create `.env.local.example`:
 
 ```
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/dbc_dev
+DATABASE_URL=postgres://postgres:postgres@localhost:5434/dbc_dev
 BLOB_READ_WRITE_TOKEN=
 ```
 
@@ -438,10 +438,17 @@ export default defineConfig({
 
 Run:
 
+Host port 5432 is already in use by an unrelated project's Postgres container on this machine — use 5434 for the dev container instead (confirmed free alongside 5433 for the test container):
+
 ```bash
-docker run --rm -d --name dbc-dev-pg -p 5432:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dbc_dev postgres:16
+docker run --rm -d --name dbc-dev-pg -p 5434:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dbc_dev postgres:16
 docker run --rm -d --name dbc-test-pg -p 5433:5432 -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dbc_test postgres:16
-npm run db:push   # against .env.local (dbc_dev)
+```
+
+Update `.env.local` (created from `.env.local.example` in Task 1) to `DATABASE_URL=postgres://postgres:postgres@localhost:5434/dbc_dev` — the `.example` file's `5432` was written before this port conflict was discovered; fix both the tracked `.env.local.example` and your local `.env.local`.
+
+```bash
+npm run db:push   # against .env.local (dbc_dev, port 5434)
 DATABASE_URL=postgres://postgres:postgres@localhost:5433/dbc_test npm run db:push   # against dbc_test
 ```
 
@@ -455,7 +462,7 @@ Run:
 node -e "
 const { drizzle } = require('drizzle-orm/postgres-js');
 const postgres = require('postgres');
-const sql = postgres(process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/dbc_dev');
+const sql = postgres(process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5434/dbc_dev');
 sql\`select count(*) from card_drafts\`.then(r => { console.log('OK', r); process.exit(0); }).catch(e => { console.error(e); process.exit(1); });
 "
 ```
