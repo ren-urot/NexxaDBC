@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db/client';
 import { cardDrafts } from '@/lib/db/schema';
-import { createDraft } from '@/lib/db/drafts';
+import { createDraft, submitDraft } from '@/lib/db/drafts';
 
 vi.mock('@/lib/blob', () => ({
   uploadLogo: vi.fn().mockResolvedValue('https://blob.example.com/logos/fake.png'),
@@ -10,10 +10,16 @@ vi.mock('@/lib/blob', () => ({
 
 import { POST } from './route';
 
-// Helper to create a mock NextRequest with FormData that works correctly
-function createFormDataRequest(id: string, file?: File) {
+const SESSION = 's1';
+
+// Helper to create a mock NextRequest with FormData that works correctly.
+// `req.formData()` is stubbed rather than passing the FormData as the request
+// body because jsdom/undici cannot parse a multipart body back out of a
+// Request constructed this way — the parsed form comes back empty.
+function createFormDataRequest(id: string, file?: File, session: string | null = SESSION) {
   const req = new NextRequest(`http://localhost/api/drafts/${id}/logo`, {
     method: 'POST',
+    headers: session ? { cookie: `dbc_session=${session}` } : {},
   });
 
   // Mock the formData method
@@ -56,5 +62,23 @@ describe('POST /api/drafts/:id/logo', () => {
     const req = createFormDataRequest('00000000-0000-0000-0000-000000000000', file);
     const res = await POST(req, { params: Promise.resolve({ id: '00000000-0000-0000-0000-000000000000' }) });
     expect(res.status).toBe(404);
+  });
+
+  it('returns 404 when another session uploads to the draft', async () => {
+    const draft = await createDraft({ sessionId: SESSION, templateId: 'corporate-vertical', orientation: 'vertical' });
+    const file = new File(['fake-bytes'], 'logo.png', { type: 'image/png' });
+    const req = createFormDataRequest(draft.id, file, 'someone-else');
+    const res = await POST(req, { params: Promise.resolve({ id: draft.id }) });
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 409 for a draft that has already been submitted', async () => {
+    const draft = await createDraft({ sessionId: SESSION, templateId: 'corporate-vertical', orientation: 'vertical' });
+    await submitDraft(draft.id);
+    const file = new File(['fake-bytes'], 'logo.png', { type: 'image/png' });
+    const res = await POST(createFormDataRequest(draft.id, file), {
+      params: Promise.resolve({ id: draft.id }),
+    });
+    expect(res.status).toBe(409);
   });
 });

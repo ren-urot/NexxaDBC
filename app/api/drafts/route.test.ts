@@ -37,6 +37,35 @@ describe('POST /api/drafts', () => {
     expect(res.cookies.get('dbc_session')).toBeUndefined();
   });
 
+  it('derives orientation from the template, ignoring a contradicting body', async () => {
+    const req = new NextRequest('http://localhost/api/drafts', {
+      method: 'POST',
+      // corporate-vertical is a vertical template; the client claims otherwise.
+      body: JSON.stringify({ templateId: 'corporate-vertical', orientation: 'horizontal' }),
+      headers: { 'content-type': 'application/json' },
+    });
+
+    const res = await POST(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(201);
+    expect(body.orientation).toBe('vertical');
+  });
+
+  it('creates a draft when orientation is omitted entirely', async () => {
+    const req = new NextRequest('http://localhost/api/drafts', {
+      method: 'POST',
+      body: JSON.stringify({ templateId: 'creative-horizontal' }),
+      headers: { 'content-type': 'application/json' },
+    });
+
+    const res = await POST(req);
+    const body = await res.json();
+
+    expect(res.status).toBe(201);
+    expect(body.orientation).toBe('horizontal');
+  });
+
   it('rejects an unknown template id', async () => {
     const req = new NextRequest('http://localhost/api/drafts', {
       method: 'POST',
