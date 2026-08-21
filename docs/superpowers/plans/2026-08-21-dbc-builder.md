@@ -1541,6 +1541,7 @@ Create `lib/db/drafts.test.ts`:
 
 ```ts
 import { describe, it, expect, beforeEach } from 'vitest';
+import { eq } from 'drizzle-orm';
 import { db } from './client';
 import { cardDrafts } from './schema';
 import { createDraft, getDraftById, updateDraft, submitDraft, expireStaleDrafts } from './drafts';
@@ -1589,7 +1590,7 @@ describe('submitDraft', () => {
 describe('expireStaleDrafts', () => {
   it('expires only draft-status rows older than the cutoff', async () => {
     const stale = await createDraft({ sessionId: 's1', templateId: 'corporate-vertical', orientation: 'vertical' });
-    await db.update(cardDrafts).set({ updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 72) }).where(eqId(stale.id));
+    await db.update(cardDrafts).set({ updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 72) }).where(eq(cardDrafts.id, stale.id));
     const fresh = await createDraft({ sessionId: 's2', templateId: 'corporate-vertical', orientation: 'vertical' });
 
     await expireStaleDrafts(new Date(Date.now() - 1000 * 60 * 60 * 48));
@@ -1598,11 +1599,6 @@ describe('expireStaleDrafts', () => {
     expect((await getDraftById(fresh.id))?.status).toBe('draft');
   });
 });
-
-function eqId(id: string) {
-  const { eq } = require('drizzle-orm');
-  return eq(cardDrafts.id, id);
-}
 ```
 
 - [ ] **Step 2: Run tests to verify they fail**
@@ -2865,12 +2861,16 @@ export function LivePreview({
 Create `components/builder/BuilderWizard.test.tsx`:
 
 ```tsx
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { BuilderWizard } from './BuilderWizard';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 const draft = {
   id: 'draft-1',
@@ -2903,7 +2903,7 @@ describe('BuilderWizard', () => {
     render(<BuilderWizard draftId="draft-1" />);
     await waitFor(() => screen.getByLabelText('First name'));
     await userEvent.type(screen.getByLabelText('First name'), 'Juan');
-    await waitFor(() => expect(screen.getByText('Juan')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Juan Last Name')).toBeInTheDocument());
   });
 
   it('submits the draft and shows a confirmation state', async () => {
@@ -2928,6 +2928,7 @@ Create `components/builder/BuilderWizard.tsx`:
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { InfoForm } from './InfoForm';
 import { CustomizePanel } from './CustomizePanel';
 import { LivePreview } from './LivePreview';
@@ -2943,6 +2944,7 @@ interface DraftState {
 }
 
 export function BuilderWizard({ draftId }: { draftId: string }) {
+  const router = useRouter();
   const [draft, setDraft] = useState<DraftState | null>(null);
 
   useEffect(() => {
@@ -2976,6 +2978,7 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
   async function handleSubmit() {
     const res = await fetch(`/api/drafts/${draftId}/submit`, { method: 'POST' });
     setDraft(await res.json());
+    router.push(`/builder/${draftId}/submitted`);
   }
 
   return (
@@ -3030,15 +3033,7 @@ export default function SubmittedPage() {
 }
 ```
 
-Modify `components/builder/BuilderWizard.tsx`'s `handleSubmit` to redirect after a successful submit — add a `useRouter` call:
-
-```tsx
-import { useRouter } from 'next/navigation';
-// inside BuilderWizard:
-const router = useRouter();
-// inside handleSubmit, after setDraft(await res.json()):
-router.push(`/builder/${draftId}/submitted`);
-```
+`BuilderWizard.tsx` already redirects to this page from `handleSubmit` (Step 4).
 
 - [ ] **Step 7: Manual smoke check**
 
