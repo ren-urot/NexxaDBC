@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { CustomizePanel } from './CustomizePanel';
 import type { TemplateDefinition } from '@/lib/templates/types';
 

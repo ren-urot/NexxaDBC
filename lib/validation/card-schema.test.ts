@@ -16,7 +16,7 @@ describe('cardDataSchema', () => {
   });
 
   it('rejects a payload missing a required field', () => {
-    const { email, ...rest } = valid;
+    const { email: _email, ...rest } = valid;
     expect(cardDataSchema.safeParse(rest).success).toBe(false);
   });
 
