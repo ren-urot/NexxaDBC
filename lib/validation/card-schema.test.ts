@@ -36,6 +36,11 @@ describe('cardDataSchema', () => {
   it('rejects an invalid optional url', () => {
     expect(cardDataSchema.safeParse({ ...valid, website: 'not-a-url' }).success).toBe(false);
   });
+
+  it('accepts an empty string for an optional url field (cleared, not invalid)', () => {
+    const result = cardDataSchema.safeParse({ ...valid, website: '', facebook: '' });
+    expect(result.success).toBe(true);
+  });
 });
 
 describe('cardDataPartialSchema', () => {
@@ -45,6 +50,27 @@ describe('cardDataPartialSchema', () => {
 
   it('accepts an empty object', () => {
     expect(cardDataPartialSchema.safeParse({}).success).toBe(true);
+  });
+
+  it('accepts an empty string for every format-constrained optional field', () => {
+    // Regression: clearing any of these back to '' used to fail .url()/.email()
+    // validation (only `undefined` satisfied `.optional()`), permanently
+    // wedging the debounced PATCH queue in BuilderWizard.
+    const result = cardDataPartialSchema.safeParse({
+      email: '',
+      website: '',
+      logoUrl: '',
+      facebook: '',
+      linkedin: '',
+      instagram: '',
+      messenger: '',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('still rejects a non-empty invalid url or email', () => {
+    expect(cardDataPartialSchema.safeParse({ website: 'not-a-url' }).success).toBe(false);
+    expect(cardDataPartialSchema.safeParse({ email: 'not-an-email' }).success).toBe(false);
   });
 });
 

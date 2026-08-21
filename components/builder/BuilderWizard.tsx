@@ -142,7 +142,12 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
     }
 
     if (!res.ok) {
-      setError("We couldn't save your latest changes. Please check the fields above.");
+      // A newer PATCH may already be in flight (or have already succeeded and
+      // cleared the error) by the time this slow, now-outdated response
+      // arrives — don't let it resurrect a stale error over fresher state.
+      if (seq === seqRef.current) {
+        setError("We couldn't save your latest changes. Please check the fields above.");
+      }
       return false;
     }
 

@@ -18,13 +18,31 @@ export async function getDraftById(id: string): Promise<CardDraftRow | null> {
   return row ?? null;
 }
 
+/**
+ * `cardDataPartialSchema` accepts '' for format-constrained optional fields
+ * (email, website, logoUrl, facebook, linkedin, instagram, messenger) so an
+ * in-progress "clear this field" edit can be saved without tripping
+ * `.url()`/`.email()` validation. Coerce that '' to NULL here, before the
+ * write, so the stored value genuinely means "unset" — matching these
+ * nullable columns — rather than persisting a literal empty string that
+ * would linger as a distinct, ambiguous "set to nothing" value everywhere
+ * else the draft is read (submit, preview, cron).
+ */
+function normalizeEmptyStrings<T extends Record<string, unknown>>(patch: T): T {
+  const normalized: Record<string, unknown> = { ...patch };
+  for (const key of Object.keys(normalized)) {
+    if (normalized[key] === '') normalized[key] = null;
+  }
+  return normalized as T;
+}
+
 export async function updateDraft(
   id: string,
   patch: CardDataPartialInput & { styleOverrides?: StyleOverridesInput }
 ): Promise<CardDraftRow | null> {
   const [row] = await db
     .update(cardDrafts)
-    .set({ ...patch, updatedAt: sql`CURRENT_TIMESTAMP` })
+    .set({ ...normalizeEmptyStrings(patch), updatedAt: sql`CURRENT_TIMESTAMP` })
     .where(eq(cardDrafts.id, id))
     .returning();
   return row ?? null;

@@ -135,4 +135,33 @@ describe('PATCH /api/drafts/:id', () => {
     expect(res.status).toBe(200);
     expect((await res.json()).styleOverrides.fontSizeStep).toBe(1);
   });
+
+  it('clears an optional URL field when patched with an empty string instead of 400ing', async () => {
+    // Regression test: typing a value into an optional URL field (e.g.
+    // Website) and then deleting it back to '' used to 400 forever, because
+    // z.string().url().optional() rejects '' (only undefined is "optional").
+    // That permanently stuck the pending patch and broke Continue.
+    const draft = await newDraft();
+    const filled = await PATCH(patchRequest({ website: 'https://abc.com' }), {
+      params: Promise.resolve({ id: draft.id }),
+    });
+    expect(filled.status).toBe(200);
+
+    const cleared = await PATCH(patchRequest({ website: '' }), {
+      params: Promise.resolve({ id: draft.id }),
+    });
+    expect(cleared.status).toBe(200);
+    const body = await cleared.json();
+    // Genuinely cleared, not left holding the old value or a stray ''.
+    expect(body.website).toBeNull();
+  });
+
+  it('clears an empty optional email the same way as an empty optional URL', async () => {
+    const draft = await newDraft();
+    await PATCH(patchRequest({ email: 'juan@abc.com' }), { params: Promise.resolve({ id: draft.id }) });
+
+    const res = await PATCH(patchRequest({ email: '' }), { params: Promise.resolve({ id: draft.id }) });
+    expect(res.status).toBe(200);
+    expect((await res.json()).email).toBeNull();
+  });
 });

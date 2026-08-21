@@ -35,6 +35,18 @@ describe('updateDraft', () => {
     expect(updated?.firstName).toBe('Juan');
     expect(updated!.updatedAt.getTime()).toBeGreaterThanOrEqual(created.updatedAt.getTime());
   });
+
+  it('normalizes an empty-string patch value to NULL instead of storing ""', async () => {
+    // cardDataPartialSchema now lets '' through for optional URL/email fields
+    // (so clearing them can save at all); updateDraft is where that '' gets
+    // turned into a genuine "unset" so it doesn't linger as a distinct value.
+    const created = await createDraft({ sessionId: 's1', templateId: 'corporate-vertical', orientation: 'vertical' });
+    await updateDraft(created.id, { website: 'https://abc.com' });
+
+    const cleared = await updateDraft(created.id, { website: '' });
+
+    expect(cleared?.website).toBeNull();
+  });
 });
 
 describe('submitDraft', () => {

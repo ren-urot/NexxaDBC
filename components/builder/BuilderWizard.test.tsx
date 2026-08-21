@@ -122,6 +122,37 @@ describe('BuilderWizard', () => {
     await waitFor(() => expect(screen.getByText(/couldn't save your latest changes/i)).toBeInTheDocument());
   });
 
+  it('lets Continue succeed after typing into an optional URL field and clearing it back out', async () => {
+    // Regression: InfoForm queues { website: '' } once the field is cleared.
+    // The old cardDataPartialSchema treated '' as an invalid URL (only
+    // `undefined` satisfied `.optional()`), so the PATCH 400ed, the failed
+    // patch stayed in pendingRef forever, and every future flushPending()
+    // (including the one handleSubmit awaits) failed the same way — Continue
+    // never worked again for that draft session.
+    server.use(
+      http.patch('/api/drafts/draft-1', async ({ request }) => {
+        const patch = (await request.json()) as Record<string, unknown>;
+        if (patch.website === '') {
+          return HttpResponse.json({ ...draft, website: null });
+        }
+        return HttpResponse.json({ ...draft, ...patch });
+      })
+    );
+
+    render(<BuilderWizard draftId="draft-1" />);
+    await waitFor(() => screen.getByLabelText('Website'));
+    const website = screen.getByLabelText('Website') as HTMLInputElement;
+
+    await userEvent.type(website, 'https://abc.com');
+    await waitFor(() => expect(website.value).toBe('https://abc.com'));
+
+    await userEvent.clear(website);
+    await waitFor(() => expect(website.value).toBe(''));
+
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }));
+    await waitFor(() => expect(screen.getByText(/submitted/i)).toBeInTheDocument());
+  });
+
   it('hides the logo upload field for a template that never renders a logo', async () => {
     server.use(
       http.get('/api/drafts/draft-1', () =>
