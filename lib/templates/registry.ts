@@ -3,6 +3,8 @@ import { CorporateVertical } from '@/components/templates/CorporateVertical';
 import { CorporateHorizontal } from '@/components/templates/CorporateHorizontal';
 import { ProfessionalVertical } from '@/components/templates/ProfessionalVertical';
 import { ProfessionalHorizontal } from '@/components/templates/ProfessionalHorizontal';
+import { ModernVertical } from '@/components/templates/ModernVertical';
+import { ModernHorizontal } from '@/components/templates/ModernHorizontal';
 
 export const templates: TemplateDefinition[] = [];
 
@@ -41,6 +43,25 @@ templates.push(
     orientation: 'horizontal',
     customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
     component: ProfessionalHorizontal,
+  }
+);
+
+templates.push(
+  {
+    id: 'modern-vertical',
+    name: 'Modern',
+    category: 'modern',
+    orientation: 'vertical',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
+    component: ModernVertical,
+  },
+  {
+    id: 'modern-horizontal',
+    name: 'Modern',
+    category: 'modern',
+    orientation: 'horizontal',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
+    component: ModernHorizontal,
   }
 );
 
