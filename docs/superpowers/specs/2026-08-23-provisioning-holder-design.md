@@ -88,19 +88,34 @@ No network request is made anywhere in this flow beyond the page's own static as
   - **Share** — Web Share API (`navigator.share`) where available, with a copy-link fallback where it isn't.
 - **Offline**: a minimal hand-rolled service worker (no library — the offline surface here is small: the `/holder` shell plus one logo image) caches what's needed on first load so the view keeps working with no connection afterward.
 
-## Server-Side Retention (independent of the transfer)
+## Server-Side Retention and Customer History Archive
 
-Because the server can't observe whether a transfer ever happens, cleanup runs on a timer instead of a completion event — a cron mirroring Builder's existing `expire-drafts` pattern, triggered by `status: approved` and `updatedAt` older than 48 hours:
-- Deletes the payment-proof blob and the draft's logo blob (same delete-then-null pattern `expire-drafts` already uses for logos).
-- Nulls the draft's PII fields in place (name, title, company, mobile, email, logo) — the draft row survives as a minimal skeleton (id, template, orientation, timestamps), same as the order row does, satisfying "delete everything except a minimal audit trail" without touching the `card_drafts.id` foreign key `orders.draftId` depends on.
+Because the server can't observe whether a transfer ever happens, cleanup runs on a timer instead of a completion event — a cron mirroring Builder's existing `expire-drafts` pattern, triggered by `status: approved` and `updatedAt` older than 48 hours.
 
-This is entirely separate from and invisible to the transfer flow above — it happens (or doesn't, if a customer never got that far) regardless of whether the QR was ever scanned.
+**Revised requirement:** the product owner needs a durable record of customer/order history for investor pitch-deck traction purposes (real counts, revenue, and — deliberately — actual customer names/companies as social proof, not just aggregate numbers), while keeping that PII out of the live, internet-facing database past its useful window, to limit ongoing breach exposure. Before the cron nulls a draft's PII, it archives the full record into a new admin-only `customer_history` table:
+
+| Field | Notes |
+|---|---|
+| `id` | uuid, primary key |
+| `orderId` | the source order's id (informational, not a hard FK — the order row survives independently) |
+| `firstName`, `lastName`, `jobTitle`, `company`, `mobile`, `email` | copied verbatim before the draft's own copies are nulled |
+| `templateId` | which template they chose |
+| `amount` | revenue from this order |
+| `orderCreatedAt` | when the order was placed — for growth-over-time reporting |
+| `archivedAt` | when the cron captured this row |
+
+This table is never exposed to any customer-facing route — only readable via a password-gated admin export. The cron's cleanup sequence becomes: insert into `customer_history` → delete the payment-proof and logo blobs → null the draft's PII fields → null the order's `paymentProofUrl`, exactly as before except for the new first step.
+
+**Export, not push:** a server cannot place a file on an admin's machine unprompted — "auto download" in any technically honest sense means the system automatically *captures* the data (no manual data-entry or export step required per order), and the admin gets a one-click **Download CSV** action on the admin dashboard whenever they actually want a local copy. CSV opens directly in Excel/Sheets without needing an `.xlsx`-writing dependency.
+
+This whole mechanism is entirely separate from and invisible to the transfer flow above — it happens (or doesn't, if a customer never got that far) regardless of whether the QR was ever scanned, and it doesn't touch the "zero DB dependency" constraint, which was always specifically about the *transfer*, not Commerce's own backend bookkeeping.
 
 ## API Surface (new + changed)
 
 New:
 - (none server-side for the transfer itself — by design, it's client-only)
-- `GET /api/cron/cleanup-approved-orders` — the retention cron
+- `GET /api/cron/cleanup-approved-orders` — the retention cron, now also archiving to `customer_history`
+- `GET /api/admin/customer-history/export` — admin-only CSV download of the accumulated history
 
 Changed:
 - `GET /api/orders/[id]` — now includes the linked draft's card fields (previously order-only)
@@ -115,5 +130,6 @@ Removed:
 - Unit tests: card encode/decode round-trip, decode validation (malformed base64, malformed JSON, wrong version, missing fields, unknown template id) both directions
 - Unit tests: IndexedDB storage helper (save, get, has-card check) — using an in-memory IndexedDB shim under Vitest/jsdom, the established pattern for browser-API-dependent unit tests in this codebase
 - Component tests: `/holder/install`'s state machine (validating → success / invalid / save-error), `/holder`'s empty vs. populated states
-- API route tests: the changed `GET /api/orders/[id]` (draft fields present), the retention cron (blob deletion, PII nulling, age-gating) — same pattern as Builder's `expire-drafts` tests
+- API route tests: the changed `GET /api/orders/[id]` (draft fields present), the retention cron (blob deletion, PII nulling, age-gating, `customer_history` archival) — same pattern as Builder's `expire-drafts` tests
+- API route tests: the admin CSV export (admin-auth-gated, correct rows/columns, empty-history case)
 - One Playwright E2E extending the existing happy path: submit a draft → checkout → pay → admin approves → capture the encoded fragment the QR would carry → navigate directly to `/holder/install#<fragment>` (a real camera scan isn't something Playwright can simulate) → confirm the card saves and renders at `/holder`
