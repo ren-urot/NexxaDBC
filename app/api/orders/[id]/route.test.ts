@@ -24,6 +24,18 @@ describe('GET /api/orders/:id', () => {
     expect(body.id).toBe(order.id);
   });
 
+  it('includes the linked draft so the client can render the provisioning QR', async () => {
+    const draft = await createDraft({ sessionId: 's1', templateId: 'corporate-vertical', orientation: 'vertical' });
+    const order = await createOrder({ draftId: draft.id, sessionId: 's1', amount: 499 });
+
+    const req = new NextRequest('http://localhost', { headers: { cookie: 'dbc_session=s1' } });
+    const res = await GET(req, { params: Promise.resolve({ id: order.id }) });
+    const body = await res.json();
+
+    expect(body.draft.id).toBe(draft.id);
+    expect(body.draft.templateId).toBe('corporate-vertical');
+  });
+
   it('returns 404 for a different session', async () => {
     const draft = await createDraft({ sessionId: 's1', templateId: 'corporate-vertical', orientation: 'vertical' });
     const order = await createOrder({ draftId: draft.id, sessionId: 's1', amount: 499 });
