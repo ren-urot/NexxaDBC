@@ -40,11 +40,6 @@ export const orderStatusEnum = pgEnum('order_status', [
   'provisioned',
 ]);
 export const paymentMethodEnum = pgEnum('payment_method', ['gcash', 'bank_transfer']);
-export const provisioningTokenStatusEnum = pgEnum('provisioning_token_status', [
-  'active',
-  'expired',
-  'consumed',
-]);
 
 export const orders = pgTable('orders', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -58,9 +53,6 @@ export const orders = pgTable('orders', {
   paymentReference: varchar('payment_reference', { length: 255 }),
   paymentProofUrl: text('payment_proof_url'),
   adminNotes: text('admin_notes'),
-  provisioningToken: varchar('provisioning_token', { length: 64 }).unique(),
-  provisioningTokenStatus: provisioningTokenStatusEnum('provisioning_token_status'),
-  provisioningExpiresAt: timestamp('provisioning_expires_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

@@ -22,7 +22,7 @@ async function submittedOrder() {
 }
 
 describe('POST /api/admin/orders/:id/approve', () => {
-  it('approves a submitted order and generates a provisioning token', async () => {
+  it('approves a submitted order', async () => {
     const order = await submittedOrder();
     const res = await POST(new NextRequest('http://localhost', { method: 'POST' }), {
       params: Promise.resolve({ id: order!.id }),
@@ -31,9 +31,6 @@ describe('POST /api/admin/orders/:id/approve', () => {
 
     expect(res.status).toBe(200);
     expect(body.status).toBe('approved');
-    expect(body.provisioningToken).toMatch(/^[0-9a-f]{64}$/);
-    expect(body.provisioningTokenStatus).toBe('active');
-    expect(new Date(body.provisioningExpiresAt).getTime()).toBeGreaterThan(Date.now());
   });
 
   it('returns 409 when the order is not submitted', async () => {

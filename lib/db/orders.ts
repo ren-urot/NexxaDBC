@@ -41,16 +41,10 @@ export async function submitPayment(
   return row ?? null;
 }
 
-export async function approveOrder(id: string, token: string, expiresAt: Date): Promise<OrderRow | null> {
+export async function approveOrder(id: string): Promise<OrderRow | null> {
   const [row] = await db
     .update(orders)
-    .set({
-      status: 'approved',
-      provisioningToken: token,
-      provisioningTokenStatus: 'active',
-      provisioningExpiresAt: expiresAt,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    })
+    .set({ status: 'approved', updatedAt: sql`CURRENT_TIMESTAMP` })
     .where(eq(orders.id, id))
     .returning();
   return row ?? null;
@@ -60,33 +54,6 @@ export async function rejectOrder(id: string, notes: string): Promise<OrderRow |
   const [row] = await db
     .update(orders)
     .set({ status: 'rejected', adminNotes: notes, updatedAt: sql`CURRENT_TIMESTAMP` })
-    .where(eq(orders.id, id))
-    .returning();
-  return row ?? null;
-}
-
-export async function regenerateProvisioningToken(
-  id: string,
-  token: string,
-  expiresAt: Date
-): Promise<OrderRow | null> {
-  const [row] = await db
-    .update(orders)
-    .set({
-      provisioningToken: token,
-      provisioningTokenStatus: 'active',
-      provisioningExpiresAt: expiresAt,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    })
-    .where(eq(orders.id, id))
-    .returning();
-  return row ?? null;
-}
-
-export async function expireProvisioningToken(id: string): Promise<OrderRow | null> {
-  const [row] = await db
-    .update(orders)
-    .set({ provisioningTokenStatus: 'expired', updatedAt: sql`CURRENT_TIMESTAMP` })
     .where(eq(orders.id, id))
     .returning();
   return row ?? null;
