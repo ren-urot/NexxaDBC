@@ -117,6 +117,16 @@ function isRawPayload(value: unknown): value is RawPayload {
     if (typeof v[key] !== 'string' || (v[key] as string).length === 0) return false;
   }
   if (v.or !== 'vertical' && v.or !== 'horizontal') return false;
+
+  // Validate optional string fields
+  const optionalStringFields: (keyof RawPayload)[] = ['ad', 'ws', 'lg', 'fb', 'li', 'ig', 'wa', 'ms', 'ac'];
+  for (const key of optionalStringFields) {
+    if (key in v && typeof v[key] !== 'string') return false;
+  }
+
+  // Validate optional number field
+  if ('fs' in v && typeof v.fs !== 'number') return false;
+
   return true;
 }
 

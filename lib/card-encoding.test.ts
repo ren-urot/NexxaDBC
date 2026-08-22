@@ -101,6 +101,34 @@ describe('encodeCard / decodeCard', () => {
     );
     expect(decodeCard(bad)).toBeNull();
   });
+
+  it('round-trips a card with fontSizeStep of 0 (falsy but valid)', () => {
+    const data: CardData = {
+      firstName: 'Test',
+      lastName: 'User',
+      jobTitle: 'Developer',
+      company: 'Test Corp',
+      mobile: '+1234567890',
+      email: 'test@example.com',
+    };
+    const styleWithZero: StyleOverrides = { fontSizeStep: 0 };
+    const encoded = encodeCard({ data, style: styleWithZero, templateId: 'corporate-vertical' });
+    expect(decodeCard(encoded)).toEqual({ data, style: styleWithZero, templateId: 'corporate-vertical' });
+  });
+
+  it('returns null for a wrong-typed optional field (fs as string instead of number)', () => {
+    const bad = compressToEncodedURIComponent(
+      JSON.stringify({ v: 1, fn: 'A', ln: 'B', jt: 'C', co: 'D', mo: 'E', em: 'f@x.com', tp: 'corporate-vertical', or: 'vertical', fs: 'not-a-number' })
+    );
+    expect(decodeCard(bad)).toBeNull();
+  });
+
+  it('returns null for a wrong-typed optional string field (accentColor as object)', () => {
+    const bad = compressToEncodedURIComponent(
+      JSON.stringify({ v: 1, fn: 'A', ln: 'B', jt: 'C', co: 'D', mo: 'E', em: 'f@x.com', tp: 'corporate-vertical', or: 'vertical', ac: {} })
+    );
+    expect(decodeCard(bad)).toBeNull();
+  });
 });
 
 describe('cardPayloadFromDraft', () => {
