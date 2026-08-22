@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { createHmac } from 'crypto';
 import {
   verifyAdminPassword,
   createAdminSessionToken,
@@ -47,6 +48,19 @@ describe('createAdminSessionToken / isValidAdminSessionToken', () => {
 
   it('undefined is not valid', () => {
     expect(isValidAdminSessionToken(undefined)).toBe(false);
+  });
+
+  it('rejects an expired token even with a valid signature', () => {
+    const expiresAt = Date.now() - 1000;
+    const signature = createHmac('sha256', 'test-secret').update(String(expiresAt)).digest('hex');
+    expect(isValidAdminSessionToken(`${expiresAt}.${signature}`)).toBe(false);
+  });
+
+  it('rejects a token whose expiry was tampered with', () => {
+    const token = createAdminSessionToken();
+    const [, signature] = token.split('.');
+    const tamperedExpiresAt = Date.now() + 1000 * 60 * 60 * 24 * 365;
+    expect(isValidAdminSessionToken(`${tamperedExpiresAt}.${signature}`)).toBe(false);
   });
 });
 
