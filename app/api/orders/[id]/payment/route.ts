@@ -3,6 +3,7 @@ import { loadOwnedOrder } from '@/lib/order-access';
 import { submitPayment } from '@/lib/db/orders';
 import { paymentSubmissionSchema } from '@/lib/validation/order-schema';
 import { uploadPaymentProof } from '@/lib/blob';
+import { validateUploadedImage } from '@/lib/upload-validation';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -21,6 +22,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const file = form.get('file');
     if (!(file instanceof File)) {
       return NextResponse.json({ error: 'Payment proof file is required' }, { status: 400 });
+    }
+    const uploadError = validateUploadedImage(file);
+    if (uploadError) {
+      return NextResponse.json({ error: uploadError }, { status: 400 });
     }
 
     const parsed = paymentSubmissionSchema.safeParse({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateDraft } from '@/lib/db/drafts';
 import { uploadLogo } from '@/lib/blob';
 import { editableDraftConflict, loadOwnedDraft } from '@/lib/draft-access';
+import { validateUploadedImage } from '@/lib/upload-validation';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -20,6 +21,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const file = form.get('file');
     if (!(file instanceof File)) {
       return NextResponse.json({ error: 'file is required' }, { status: 400 });
+    }
+    const uploadError = validateUploadedImage(file);
+    if (uploadError) {
+      return NextResponse.json({ error: uploadError }, { status: 400 });
     }
 
     const logoUrl = await uploadLogo(file, id);

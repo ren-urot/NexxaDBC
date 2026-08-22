@@ -104,4 +104,14 @@ describe('POST /api/orders/:id/payment', () => {
     expect(body.status).toBe('submitted');
     expect(body.paymentMethod).toBe('bank_transfer');
   });
+
+  it('rejects a non-image file', async () => {
+    const draft = await createDraft({ sessionId: 's1', templateId: 'corporate-vertical', orientation: 'vertical' });
+    const order = await createOrder({ draftId: draft.id, sessionId: 's1', amount: 499 });
+    const file = new File(['<script>alert(1)</script>'], 'evil.html', { type: 'text/html' });
+    const req = formDataRequest('dbc_session=s1', { paymentMethod: 'gcash', paymentReference: 'REF123' }, file);
+
+    const res = await POST(req, { params: Promise.resolve({ id: order.id }) });
+    expect(res.status).toBe(400);
+  });
 });

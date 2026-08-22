@@ -84,4 +84,12 @@ describe('POST /api/drafts/:id/logo', () => {
     });
     expect(res.status).toBe(409);
   });
+
+  it('rejects a non-image file', async () => {
+    const draft = await createDraft({ sessionId: 's1', templateId: 'corporate-vertical', orientation: 'vertical' });
+    const file = new File(['<script>alert(1)</script>'], 'evil.html', { type: 'text/html' });
+    const req = createFormDataRequest(draft.id, file);
+    const res = await POST(req, { params: Promise.resolve({ id: draft.id }) });
+    expect(res.status).toBe(400);
+  });
 });
