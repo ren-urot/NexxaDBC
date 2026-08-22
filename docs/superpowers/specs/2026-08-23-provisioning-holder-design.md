@@ -35,22 +35,33 @@ New code stays inside the same Next.js app (same repo, same Postgres DB for the 
 
 ## Card Payload Encoding
 
-A versioned, compact JSON object, short keys to keep the QR small and reliably scannable, base64url-encoded into the URL fragment:
+A versioned, compact JSON object, short keys to keep the QR small and reliably scannable, base64url-encoded into the URL fragment. Covers every field the template components actually render (`lib/templates/types.ts`'s `CardData` and `StyleOverrides`) — an earlier draft of this table only carried the required fields and missed the optional contact/social/style ones; corrected here before planning:
 
-| Key | Meaning | Source |
-|---|---|---|
-| `v` | schema version (`1`) | literal |
-| `fn` | first name | `draft.firstName` |
-| `ln` | last name | `draft.lastName` |
-| `jt` | job title | `draft.jobTitle` |
-| `co` | company | `draft.company` |
-| `mo` | mobile | `draft.mobile` |
-| `em` | email | `draft.email` |
-| `tp` | template id | `draft.templateId` |
-| `or` | orientation (`vertical` \| `horizontal`) | `draft.orientation` |
-| `lg` | logo URL, omitted if none | `draft.logoUrl` |
+| Key | Meaning | Source | Required? |
+|---|---|---|---|
+| `v` | schema version (`1`) | literal | yes |
+| `fn` | first name | `draft.firstName` | yes |
+| `ln` | last name | `draft.lastName` | yes |
+| `jt` | job title | `draft.jobTitle` | yes |
+| `co` | company | `draft.company` | yes |
+| `mo` | mobile | `draft.mobile` | yes |
+| `em` | email | `draft.email` | yes |
+| `tp` | template id | `draft.templateId` | yes |
+| `or` | orientation (`vertical` \| `horizontal`) | `draft.orientation` | yes |
+| `ad` | address | `draft.address` | no |
+| `ws` | website | `draft.website` | no |
+| `lg` | logo URL | `draft.logoUrl` | no |
+| `fb` | Facebook | `draft.facebook` | no |
+| `li` | LinkedIn | `draft.linkedin` | no |
+| `ig` | Instagram | `draft.instagram` | no |
+| `wa` | WhatsApp | `draft.whatsapp` | no |
+| `ms` | Messenger | `draft.messenger` | no |
+| `ac` | accent color override | `draft.styleOverrides.accentColor` | no |
+| `fs` | font-size-step override | `draft.styleOverrides.fontSizeStep` | no |
 
 A logo's image bytes are never embedded (far too large for a reliably-scannable QR) — only its URL travels in the payload, fetched once by the Holder like any other image and cached locally afterward. This is the one narrow exception to "zero network calls": loading a static image resource, not a database lookup.
+
+A fully filled-out card (all optional fields present, a typical name/address/website length) runs to a few hundred bytes after base64url encoding — comfortably within QR capacity at a reasonable error-correction level, though the plan should size-test against a maximal realistic card (longest allowed field values from Builder's own validation) rather than assume.
 
 Decoding validates: well-formed base64url, well-formed JSON, `v` matches a known version, all required string fields present and non-empty, `tp` matches a real template id, `or` is one of the two valid values. Anything that fails validation is treated as **invalid**, distinct from a **save error** (decoding succeeded but writing to IndexedDB failed) — both are shown to the user, both prompt "scan the QR again."
 
