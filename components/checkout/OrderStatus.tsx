@@ -1,7 +1,8 @@
 'use client';
 
-import { QRCodeSVG } from 'qrcode.react';
-import { isProvisioningTokenValid } from '@/lib/provisioning-token';
+import { encodeCard, cardPayloadFromDraft } from '@/lib/card-encoding';
+import { CardInstallQR } from '@/components/shared/CardInstallQR';
+import type { StyleOverrides } from '@/lib/templates/types';
 
 const STATUS_COPY: Record<string, { label: string; body: string }> = {
   pending_payment: {
@@ -20,30 +21,39 @@ const STATUS_COPY: Record<string, { label: string; body: string }> = {
     label: 'Payment rejected',
     body: 'Something was off with your payment. See the note below and resubmit.',
   },
-  provisioned: {
-    label: 'Provisioned',
-    body: 'Your card has been transferred to your phone.',
-  },
 };
+
+interface StatusDraft {
+  firstName: string | null;
+  lastName: string | null;
+  jobTitle: string | null;
+  company: string | null;
+  mobile: string | null;
+  email: string | null;
+  address: string | null;
+  website: string | null;
+  logoUrl: string | null;
+  facebook: string | null;
+  linkedin: string | null;
+  instagram: string | null;
+  whatsapp: string | null;
+  messenger: string | null;
+  templateId: string;
+  styleOverrides: StyleOverrides;
+}
 
 interface OrderStatusProps {
   status: string;
   adminNotes?: string | null;
-  provisioningToken?: string | null;
-  provisioningTokenStatus?: string | null;
-  provisioningExpiresAt?: string | Date | null;
+  draft?: StatusDraft | null;
   origin: string;
 }
 
-export function OrderStatus({
-  status,
-  adminNotes,
-  provisioningToken,
-  provisioningTokenStatus,
-  provisioningExpiresAt,
-  origin,
-}: OrderStatusProps) {
+export function OrderStatus({ status, adminNotes, draft, origin }: OrderStatusProps) {
   const copy = STATUS_COPY[status] ?? { label: status, body: '' };
+  const qrValue =
+    status === 'approved' && draft ? `${origin}/holder/install#${encodeCard(cardPayloadFromDraft(draft))}` : null;
+
   return (
     <div className="space-y-6">
       <div>
@@ -55,14 +65,7 @@ export function OrderStatus({
           {adminNotes}
         </p>
       )}
-      {status === 'approved' &&
-        provisioningToken &&
-        isProvisioningTokenValid({ provisioningTokenStatus, provisioningExpiresAt }) && (
-        <div className="flex flex-col items-center gap-3 rounded-sm border border-line bg-stock p-6">
-          <QRCodeSVG value={`${origin}/provision/${provisioningToken}`} size={200} />
-          <p className="font-mono text-xs uppercase tracking-[0.14em] text-ink-soft">Scan to add to your phone</p>
-        </div>
-      )}
+      {qrValue && <CardInstallQR value={qrValue} />}
     </div>
   );
 }
