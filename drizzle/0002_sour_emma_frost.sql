@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD CONSTRAINT "orders_provisioning_token_unique" UNIQUE("provisioning_token");
