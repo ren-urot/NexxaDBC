@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { db } from './client';
-import { cardDrafts } from './schema';
+import { cardDrafts, orders } from './schema';
 import { createDraft, getDraftById, updateDraft, submitDraft, expireStaleDrafts } from './drafts';
 
 beforeEach(async () => {
+  // orders.draftId references card_drafts.id — must clear the referencing
+  // table first or a leftover order from a Commerce test run blocks this.
+  await db.delete(orders);
   await db.delete(cardDrafts);
 });
 

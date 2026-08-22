@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db/client';
-import { cardDrafts } from '@/lib/db/schema';
+import { cardDrafts, orders } from '@/lib/db/schema';
 import { createDraft, updateDraft } from '@/lib/db/drafts';
 import { POST } from './route';
 
@@ -32,6 +32,9 @@ async function completeDraft() {
 }
 
 beforeEach(async () => {
+  // orders.draftId references card_drafts.id — must clear the referencing
+  // table first or a leftover order from a Commerce test run blocks this.
+  await db.delete(orders);
   await db.delete(cardDrafts);
 });
 

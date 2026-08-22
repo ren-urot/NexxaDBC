@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db/client';
-import { cardDrafts } from '@/lib/db/schema';
+import { cardDrafts, orders } from '@/lib/db/schema';
 import { createDraft, submitDraft } from '@/lib/db/drafts';
 
 vi.mock('@/lib/blob', () => ({
@@ -33,6 +33,9 @@ function createFormDataRequest(id: string, file?: File, session: string | null =
 }
 
 beforeEach(async () => {
+  // orders.draftId references card_drafts.id — must clear the referencing
+  // table first or a leftover order from a Commerce test run blocks this.
+  await db.delete(orders);
   await db.delete(cardDrafts);
   vi.clearAllMocks();
 });
