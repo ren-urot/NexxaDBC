@@ -24,6 +24,11 @@ describe('POST /api/admin/orders/:id/provisioning-qr/expire', () => {
 
     expect(res.status).toBe(200);
     expect(body.provisioningTokenStatus).toBe('expired');
+    // Expiring must only flip the status, never clear the token itself —
+    // the DB-helper layer (lib/db/orders.test.ts) already covers this, but
+    // that test never goes through this route's JSON response, so it can't
+    // catch a serialization bug that accidentally strips the field.
+    expect(body.provisioningToken).toBe('tok123');
   });
 
   it('returns 409 when the order is not approved', async () => {
