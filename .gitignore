@@ -15,6 +15,9 @@
 /test-results/
 /playwright-report/
 
+# local dev fallback for blob storage (no BLOB_READ_WRITE_TOKEN configured)
+/public/uploads/
+
 # next.js
 /.next/
 /out/
