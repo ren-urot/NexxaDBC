@@ -13,11 +13,21 @@ interface OrderRow {
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderRow[] | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetch('/api/admin/orders')
-      .then(res => res.json())
-      .then(setOrders);
+      .then(res => {
+        if (!res.ok) {
+          setError(true);
+          return null;
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data) setOrders(data);
+      })
+      .catch(() => setError(true));
   }, []);
 
   return (
@@ -25,7 +35,15 @@ export default function AdminOrdersPage() {
       <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Admin</p>
       <h1 className="font-display text-3xl font-medium text-ink">Orders</h1>
       <div className="mt-8">
-        {orders ? <OrderTable orders={orders} /> : <p className="text-ink-soft">Loading…</p>}
+        {error ? (
+          <p role="alert" className="text-sm text-[#b3452c]">
+            Couldn&apos;t load orders. Try refreshing, or sign in again if your session expired.
+          </p>
+        ) : orders ? (
+          <OrderTable orders={orders} />
+        ) : (
+          <p className="text-ink-soft">Loading…</p>
+        )}
       </div>
     </main>
   );
