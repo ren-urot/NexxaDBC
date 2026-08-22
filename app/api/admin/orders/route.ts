@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     if (status && !isOrderStatus(status)) {
       return NextResponse.json({ error: 'Invalid status filter' }, { status: 400 });
     }
-    const result = await listOrders(status ? { status } : undefined);
+    const result = await listOrders(status && isOrderStatus(status) ? { status } : undefined);
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
