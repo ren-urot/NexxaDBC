@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, jsonb, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, jsonb, integer, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 import type { StyleOverrides } from '@/lib/templates/types';
 
 export const draftStatusEnum = pgEnum('draft_status', ['draft', 'submitted', 'expired']);
@@ -31,3 +31,39 @@ export const cardDrafts = pgTable('card_drafts', {
 
 export type CardDraftRow = typeof cardDrafts.$inferSelect;
 export type CardDraftInsert = typeof cardDrafts.$inferInsert;
+
+export const orderStatusEnum = pgEnum('order_status', [
+  'pending_payment',
+  'submitted',
+  'approved',
+  'rejected',
+  'provisioned',
+]);
+export const paymentMethodEnum = pgEnum('payment_method', ['gcash', 'bank_transfer']);
+export const provisioningTokenStatusEnum = pgEnum('provisioning_token_status', [
+  'active',
+  'expired',
+  'consumed',
+]);
+
+export const orders = pgTable('orders', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  draftId: uuid('draft_id')
+    .notNull()
+    .references(() => cardDrafts.id),
+  sessionId: varchar('session_id', { length: 64 }).notNull(),
+  status: orderStatusEnum('status').notNull().default('pending_payment'),
+  amount: integer('amount').notNull(),
+  paymentMethod: paymentMethodEnum('payment_method'),
+  paymentReference: varchar('payment_reference', { length: 255 }),
+  paymentProofUrl: text('payment_proof_url'),
+  adminNotes: text('admin_notes'),
+  provisioningToken: varchar('provisioning_token', { length: 64 }),
+  provisioningTokenStatus: provisioningTokenStatusEnum('provisioning_token_status'),
+  provisioningExpiresAt: timestamp('provisioning_expires_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export type OrderRow = typeof orders.$inferSelect;
+export type OrderInsert = typeof orders.$inferInsert;
