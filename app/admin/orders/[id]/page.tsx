@@ -22,11 +22,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [origin, setOrigin] = useState('');
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
+  const [origin] = useState(() => (typeof window !== 'undefined' ? window.location.origin : ''));
 
   async function load() {
     const res = await fetch(`/api/admin/orders/${id}`);
@@ -34,7 +30,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   }
 
   useEffect(() => {
-    load();
+    (async () => {
+      await load();
+    })();
   }, [id]);
 
   async function act(path: string, body?: unknown) {

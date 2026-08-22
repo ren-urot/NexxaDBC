@@ -22,11 +22,7 @@ export default function OrderStatusPage({ params }: { params: Promise<{ orderId:
   const [method, setMethod] = useState<'gcash' | 'bank_transfer' | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [origin, setOrigin] = useState('');
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
+  const [origin] = useState(() => (typeof window !== 'undefined' ? window.location.origin : ''));
 
   async function load() {
     try {
@@ -42,7 +38,9 @@ export default function OrderStatusPage({ params }: { params: Promise<{ orderId:
   }
 
   useEffect(() => {
-    load();
+    (async () => {
+      await load();
+    })();
   }, [orderId]);
 
   async function handleResubmit({ reference, file }: { reference: string; file: File }) {
