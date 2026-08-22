@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDraftById } from '@/lib/db/drafts';
-import { createOrder } from '@/lib/db/orders';
+import { createOrder, getOrderByDraftId } from '@/lib/db/orders';
 import { resolveSessionId, sessionCookieOptions, SESSION_COOKIE } from '@/lib/session';
 
 const ORDER_AMOUNT = 499;
@@ -32,6 +32,17 @@ export async function POST(req: NextRequest) {
     }
     if (draft.status !== 'submitted') {
       return NextResponse.json({ error: 'Draft must be submitted before checkout' }, { status: 409 });
+    }
+
+    // One order per draft, permanently — a rejected order is resubmitted via
+    // POST /api/orders/:id/payment on the SAME order id (see the checkout
+    // status page's resubmit flow), never by creating a second order here.
+    // This route is only ever called again for the same draft via a
+    // double-click or back-navigation, so any existing order is the right
+    // one to hand back rather than creating a duplicate.
+    const existing = await getOrderByDraftId(draft.id);
+    if (existing) {
+      return NextResponse.json(existing, { status: 200 });
     }
 
     const order = await createOrder({ draftId: draft.id, sessionId, amount: ORDER_AMOUNT });

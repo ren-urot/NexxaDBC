@@ -89,4 +89,23 @@ describe('POST /api/orders', () => {
     const res = await POST(req);
     expect(res.status).toBe(400);
   });
+
+  it('returns the existing order instead of creating a duplicate on a repeat request', async () => {
+    const draft = await submittedDraft('s1');
+    const req = () =>
+      new NextRequest('http://localhost/api/orders', {
+        method: 'POST',
+        body: JSON.stringify({ draftId: draft!.id }),
+        headers: { 'content-type': 'application/json', cookie: 'dbc_session=s1' },
+      });
+
+    const first = await POST(req());
+    const firstBody = await first.json();
+    expect(first.status).toBe(201);
+
+    const second = await POST(req());
+    const secondBody = await second.json();
+    expect(second.status).toBe(200);
+    expect(secondBody.id).toBe(firstBody.id);
+  });
 });

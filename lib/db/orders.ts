@@ -19,6 +19,15 @@ export async function getOrderById(id: string): Promise<OrderRow | null> {
   return row ?? null;
 }
 
+export async function getOrderByDraftId(draftId: string): Promise<OrderRow | null> {
+  const [row] = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.draftId, draftId))
+    .orderBy(desc(orders.createdAt));
+  return row ?? null;
+}
+
 export async function submitPayment(
   id: string,
   input: { paymentMethod: PaymentMethod; paymentReference: string; paymentProofUrl: string }
