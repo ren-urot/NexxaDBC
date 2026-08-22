@@ -1,6 +1,7 @@
 'use client';
 
 import { QRCodeSVG } from 'qrcode.react';
+import { isProvisioningTokenValid } from '@/lib/provisioning-token';
 
 const STATUS_COPY: Record<string, { label: string; body: string }> = {
   pending_payment: {
@@ -30,6 +31,7 @@ interface OrderStatusProps {
   adminNotes?: string | null;
   provisioningToken?: string | null;
   provisioningTokenStatus?: string | null;
+  provisioningExpiresAt?: string | Date | null;
   origin: string;
 }
 
@@ -38,6 +40,7 @@ export function OrderStatus({
   adminNotes,
   provisioningToken,
   provisioningTokenStatus,
+  provisioningExpiresAt,
   origin,
 }: OrderStatusProps) {
   const copy = STATUS_COPY[status] ?? { label: status, body: '' };
@@ -52,7 +55,9 @@ export function OrderStatus({
           {adminNotes}
         </p>
       )}
-      {status === 'approved' && provisioningToken && provisioningTokenStatus === 'active' && (
+      {status === 'approved' &&
+        provisioningToken &&
+        isProvisioningTokenValid({ provisioningTokenStatus, provisioningExpiresAt }) && (
         <div className="flex flex-col items-center gap-3 rounded-sm border border-line bg-stock p-6">
           <QRCodeSVG value={`${origin}/provision/${provisioningToken}`} size={200} />
           <p className="font-mono text-xs uppercase tracking-[0.14em] text-ink-soft">Scan to add to your phone</p>

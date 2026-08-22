@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { ProvisioningQR } from '@/components/admin/ProvisioningQR';
+import { isProvisioningTokenValid } from '@/lib/provisioning-token';
 
 interface OrderDetail {
   id: string;
@@ -13,6 +14,7 @@ interface OrderDetail {
   adminNotes: string | null;
   provisioningToken: string | null;
   provisioningTokenStatus: string | null;
+  provisioningExpiresAt: string | null;
   draft: { firstName: string; lastName: string; company: string; email: string } | null;
 }
 
@@ -117,7 +119,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
       {order.status === 'approved' && order.provisioningToken && (
         <div className="mt-8 space-y-4">
-          {order.provisioningTokenStatus === 'active' && (
+          {isProvisioningTokenValid(order) && (
             <ProvisioningQR token={order.provisioningToken} origin={origin} />
           )}
           <div className="flex gap-4">

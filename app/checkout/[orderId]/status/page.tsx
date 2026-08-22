@@ -13,6 +13,7 @@ interface OrderState {
   adminNotes: string | null;
   provisioningToken: string | null;
   provisioningTokenStatus: string | null;
+  provisioningExpiresAt: string | null;
 }
 
 export default function OrderStatusPage({ params }: { params: Promise<{ orderId: string }> }) {
@@ -87,6 +88,7 @@ export default function OrderStatusPage({ params }: { params: Promise<{ orderId:
           adminNotes={order.adminNotes}
           provisioningToken={order.provisioningToken}
           provisioningTokenStatus={order.provisioningTokenStatus}
+          provisioningExpiresAt={order.provisioningExpiresAt}
           origin={origin}
         />
       </div>
