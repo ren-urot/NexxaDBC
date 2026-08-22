@@ -32,6 +32,11 @@ const eslintConfig = defineConfig([
     'test-results/**',
     'playwright-report/**',
     'drizzle/**',
+    // superpowers:using-git-worktrees creates linked worktrees here
+    // (gitignored, but still on disk) — without ignoring it, linting from
+    // the main checkout while a worktree exists also scans that worktree's
+    // entire tree, including its own generated .next/** build output.
+    '.worktrees/**',
   ]),
 ]);
 
