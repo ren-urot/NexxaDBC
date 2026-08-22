@@ -24,7 +24,8 @@ export async function getOrderByDraftId(draftId: string): Promise<OrderRow | nul
     .select()
     .from(orders)
     .where(eq(orders.draftId, draftId))
-    .orderBy(desc(orders.createdAt));
+    .orderBy(desc(orders.createdAt))
+    .limit(1);
   return row ?? null;
 }
 

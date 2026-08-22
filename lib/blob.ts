@@ -14,15 +14,30 @@ function hasBlobToken(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
-// file.name comes from the client-supplied multipart upload and must never be
-// trusted as a path component — an uploaded filename like "../../../etc/x"
-// would otherwise let putLocal/delLocal write or delete outside uploads/.
-function safeFilename(name: string): string {
-  return path.basename(name).replace(/[^a-zA-Z0-9._-]/g, '_') || 'file';
+// file.name is client-supplied and untrustworthy on two axes: as a path
+// component (an uploaded name like "../../../etc/x" would let putLocal
+// write outside uploads/), and as a stored extension (a request can declare
+// Content-Type: image/png while naming the part "evil.html" — Next's static
+// file server infers Content-Type from the stored filename's extension at
+// serve time, not from anything declared at upload, so trusting file.name's
+// extension would let a same-origin HTML/script response be served back).
+// Both callers already validate file.type against an image allowlist before
+// calling these, so deriving the extension from that validated type — never
+// from file.name — closes both issues at once.
+const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+};
+
+function safeExtension(file: File): string {
+  return EXTENSION_BY_MIME_TYPE[file.type] ?? 'bin';
 }
 
 // Resolves a pathname under LOCAL_UPLOADS_DIR and asserts the result actually
-// stays inside it, as defense in depth beyond safeFilename.
+// stays inside it — pathnames are built entirely from draftId/orderId, a
+// timestamp, and safeExtension's fixed lookup table, so this should never
+// trip, but it's cheap defense in depth to assert rather than assume.
 function resolveLocalPath(pathname: string): string {
   const dest = path.join(LOCAL_UPLOADS_DIR, pathname);
   if (!dest.startsWith(LOCAL_UPLOADS_DIR + path.sep)) {
@@ -44,7 +59,7 @@ async function delLocal(url: string): Promise<void> {
 }
 
 export async function uploadLogo(file: File, draftId: string): Promise<string> {
-  const pathname = `logos/${draftId}-${Date.now()}-${safeFilename(file.name)}`;
+  const pathname = `logos/${draftId}-${Date.now()}.${safeExtension(file)}`;
   if (!hasBlobToken()) return putLocal(pathname, file);
   const blob = await put(pathname, file, { access: 'public' });
   return blob.url;
@@ -60,7 +75,7 @@ export async function deleteLogo(url: string): Promise<void> {
 }
 
 export async function uploadPaymentProof(file: File, orderId: string): Promise<string> {
-  const pathname = `payment-proofs/${orderId}-${Date.now()}-${safeFilename(file.name)}`;
+  const pathname = `payment-proofs/${orderId}-${Date.now()}.${safeExtension(file)}`;
   if (!hasBlobToken()) return putLocal(pathname, file);
   const blob = await put(pathname, file, { access: 'public' });
   return blob.url;
