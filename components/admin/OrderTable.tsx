@@ -34,7 +34,7 @@ export function OrderTable({ orders }: { orders: OrderTableRow[] }) {
             <td className="py-3">
               <Link
                 href={`/admin/orders/${o.id}`}
-                className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan"
+                className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
               >
                 View →
               </Link>

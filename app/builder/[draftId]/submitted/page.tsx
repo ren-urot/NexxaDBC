@@ -46,7 +46,7 @@ export default function SubmittedPage({ params }: { params: Promise<{ draftId: s
       <button
         onClick={handleContinue}
         disabled={loading}
-        className="mt-2 rounded-full bg-ink px-6 py-3 font-medium text-paper transition-colors hover:bg-ink/90 disabled:opacity-50"
+        className="mt-2 rounded-full bg-ink px-6 py-3 font-medium text-paper transition-colors hover:bg-ink/90 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
       >
         {loading ? 'Starting checkout…' : 'Continue to payment'}
       </button>

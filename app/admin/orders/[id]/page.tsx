@@ -90,7 +90,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
           <button
             onClick={() => act('/approve')}
             disabled={busy}
-            className="rounded-full bg-ink px-6 py-3 font-medium text-paper transition-colors hover:bg-ink/90 disabled:opacity-50"
+            className="rounded-full bg-ink px-6 py-3 font-medium text-paper transition-colors hover:bg-ink/90 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
           >
             Approve
           </button>
@@ -109,7 +109,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
             <button
               onClick={() => act('/reject', { notes })}
               disabled={busy || !notes.trim()}
-              className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan disabled:opacity-50"
+              className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
             >
               Reject
             </button>
@@ -126,14 +126,14 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
             <button
               onClick={() => act('/provisioning-qr/regenerate')}
               disabled={busy}
-              className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan disabled:opacity-50"
+              className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
             >
               Regenerate QR
             </button>
             <button
               onClick={() => act('/provisioning-qr/expire')}
               disabled={busy}
-              className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan disabled:opacity-50"
+              className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
             >
               Expire QR
             </button>
