@@ -14,3 +14,10 @@ export async function uploadLogo(file: File, draftId: string): Promise<string> {
 export async function deleteLogo(url: string): Promise<void> {
   await del(url);
 }
+
+export async function uploadPaymentProof(file: File, orderId: string): Promise<string> {
+  const blob = await put(`payment-proofs/${orderId}-${Date.now()}-${file.name}`, file, {
+    access: 'public',
+  });
+  return blob.url;
+}
