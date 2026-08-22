@@ -47,7 +47,7 @@ export function PaymentForm({ method, onSubmit, submitting }: PaymentFormProps) 
           type="file"
           accept="image/*"
           onChange={e => setFile(e.target.files?.[0] ?? null)}
-          className="mt-1.5 block w-full text-sm text-ink-soft file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1.5 file:font-mono file:text-[11px] file:uppercase file:tracking-[0.1em] file:text-paper"
+          className="mt-1.5 block w-full text-sm text-ink-soft file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1.5 file:font-mono file:text-[11px] file:uppercase file:tracking-[0.1em] file:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
         />
       </label>
       {error && (
@@ -58,7 +58,7 @@ export function PaymentForm({ method, onSubmit, submitting }: PaymentFormProps) 
       <button
         type="submit"
         disabled={submitting}
-        className="rounded-full bg-ink px-6 py-3 font-medium text-paper transition-colors hover:bg-ink/90 disabled:opacity-50"
+        className="rounded-full bg-ink px-6 py-3 font-medium text-paper transition-colors hover:bg-ink/90 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
       >
         {submitting ? 'Submitting…' : "I've paid — submit for review"}
       </button>
