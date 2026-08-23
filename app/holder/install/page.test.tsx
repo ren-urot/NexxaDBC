@@ -63,4 +63,10 @@ describe('HolderInstallPage', () => {
     render(<HolderInstallPage />);
     expect(await screen.findByRole('alert')).toHaveTextContent(/couldn.t save/i);
   });
+
+  it('shows an error state when checking for an existing card fails', async () => {
+    vi.mocked(hasCard).mockRejectedValue(new Error('storage error'));
+    render(<HolderInstallPage />);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/couldn.t save/i);
+  });
 });

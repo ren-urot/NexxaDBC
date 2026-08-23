@@ -13,10 +13,15 @@ export default function HolderInstallPage() {
 
   useEffect(() => {
     (async () => {
-      if (await hasCard()) {
-        // Already saved on this device — a refresh or a repeat scan of the
-        // same QR shouldn't re-process or error, just go straight in.
-        router.replace('/holder');
+      try {
+        if (await hasCard()) {
+          // Already saved on this device — a refresh or a repeat scan of the
+          // same QR shouldn't re-process or error, just go straight in.
+          router.replace('/holder');
+          return;
+        }
+      } catch {
+        setState('error');
         return;
       }
 
