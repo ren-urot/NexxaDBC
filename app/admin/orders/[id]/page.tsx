@@ -1,8 +1,28 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
-import { ProvisioningQR } from '@/components/admin/ProvisioningQR';
-import { isProvisioningTokenValid } from '@/lib/provisioning-token';
+import { encodeCard, cardPayloadFromDraft } from '@/lib/card-encoding';
+import { CardInstallQR } from '@/components/shared/CardInstallQR';
+import type { StyleOverrides } from '@/lib/templates/types';
+
+interface OrderDraft {
+  firstName: string | null;
+  lastName: string | null;
+  jobTitle: string | null;
+  company: string | null;
+  mobile: string | null;
+  email: string | null;
+  address: string | null;
+  website: string | null;
+  logoUrl: string | null;
+  facebook: string | null;
+  linkedin: string | null;
+  instagram: string | null;
+  whatsapp: string | null;
+  messenger: string | null;
+  templateId: string;
+  styleOverrides: StyleOverrides;
+}
 
 interface OrderDetail {
   id: string;
@@ -12,10 +32,7 @@ interface OrderDetail {
   paymentReference: string | null;
   paymentProofUrl: string | null;
   adminNotes: string | null;
-  provisioningToken: string | null;
-  provisioningTokenStatus: string | null;
-  provisioningExpiresAt: string | null;
-  draft: { firstName: string; lastName: string; company: string; email: string } | null;
+  draft: OrderDraft | null;
 }
 
 export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -60,6 +77,11 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   }
 
   if (!order) return <p className="p-8 font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">Loading…</p>;
+
+  const qrValue =
+    order.status === 'approved' && order.draft
+      ? `${origin}/holder/install#${encodeCard(cardPayloadFromDraft(order.draft))}`
+      : null;
 
   return (
     <main className="mx-auto w-full max-w-2xl px-6 py-16">
@@ -117,27 +139,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         </div>
       )}
 
-      {order.status === 'approved' && order.provisioningToken && (
-        <div className="mt-8 space-y-4">
-          {isProvisioningTokenValid(order) && (
-            <ProvisioningQR token={order.provisioningToken} origin={origin} />
-          )}
-          <div className="flex gap-4">
-            <button
-              onClick={() => act('/provisioning-qr/regenerate')}
-              disabled={busy}
-              className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
-            >
-              Regenerate QR
-            </button>
-            <button
-              onClick={() => act('/provisioning-qr/expire')}
-              disabled={busy}
-              className="font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
-            >
-              Expire QR
-            </button>
-          </div>
+      {qrValue && (
+        <div className="mt-8">
+          <CardInstallQR value={qrValue} />
         </div>
       )}
     </main>
