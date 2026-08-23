@@ -2,10 +2,19 @@ import { NextResponse } from 'next/server';
 import { listCustomerHistory } from '@/lib/db/customer-history';
 
 function csvEscape(value: string): string {
-  if (/[",\n]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
+  // Formula injection: Excel/Sheets treat a cell starting with =, +, -, @,
+  // tab, or CR as an executable formula, not literal text — every value
+  // here originates from unauthenticated Builder input, and this file's
+  // whole purpose is to be opened directly in a spreadsheet. A leading
+  // apostrophe forces literal-text interpretation without changing the
+  // visible value. This also fixes a real (non-malicious) data bug: every
+  // Philippine mobile number starts with "+" and would otherwise be
+  // silently misparsed as a formula and stripped down to nothing.
+  const guarded = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  if (/[",\n]/.test(guarded)) {
+    return `"${guarded.replace(/"/g, '""')}"`;
   }
-  return value;
+  return guarded;
 }
 
 const HEADER = [

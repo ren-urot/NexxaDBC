@@ -63,4 +63,42 @@ describe('GET /api/admin/customer-history/export', () => {
     const text = await res.text();
     expect(text).toContain('"Reyes, Inc."');
   });
+
+  it('guards a formula-injection attempt in a field', async () => {
+    await archiveOrder({
+      orderId: '33333333-3333-3333-3333-333333333333',
+      firstName: 'Eve',
+      lastName: 'Attacker',
+      jobTitle: 'N/A',
+      company: '=HYPERLINK("https://evil.example")',
+      mobile: '+639170000001',
+      email: 'eve@example.com',
+      templateId: 'corporate-vertical',
+      amount: 499,
+      orderCreatedAt: new Date(),
+    });
+
+    const res = await GET();
+    const text = await res.text();
+    expect(text).toContain("'=HYPERLINK");
+  });
+
+  it('guards a Philippine mobile number so Excel does not misparse the leading +', async () => {
+    await archiveOrder({
+      orderId: '44444444-4444-4444-4444-444444444444',
+      firstName: 'Juan',
+      lastName: 'Dela Cruz',
+      jobTitle: 'Sales',
+      company: 'ABC',
+      mobile: '+639171234567',
+      email: 'juan@abc.com',
+      templateId: 'corporate-vertical',
+      amount: 499,
+      orderCreatedAt: new Date(),
+    });
+
+    const res = await GET();
+    const text = await res.text();
+    expect(text).toContain("'+639171234567");
+  });
 });
