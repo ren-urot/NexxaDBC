@@ -34,6 +34,12 @@ export default function AdminOrdersPage() {
     <main className="mx-auto w-full max-w-4xl px-6 py-16">
       <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Admin</p>
       <h1 className="font-display text-3xl font-medium text-ink">Orders</h1>
+      <a
+        href="/api/admin/customer-history/export"
+        className="mt-2 inline-block font-mono text-xs uppercase tracking-[0.14em] text-ink underline decoration-line underline-offset-4 hover:decoration-scan focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
+      >
+        Download customer history (CSV)
+      </a>
       <div className="mt-8">
         {error ? (
           <p role="alert" className="text-sm text-[#b3452c]">
