@@ -3,9 +3,32 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { decodeCard } from '@/lib/card-encoding';
-import { saveCard, hasCard } from '@/lib/holder-storage';
+import { saveCard, getCard, type HolderCard } from '@/lib/holder-storage';
+import type { CardData } from '@/lib/templates/types';
 
 type InstallState = 'checking' | 'saving' | 'success' | 'invalid' | 'error';
+
+const IDENTITY_FIELDS: (keyof CardData)[] = [
+  'firstName',
+  'lastName',
+  'jobTitle',
+  'company',
+  'mobile',
+  'email',
+  'address',
+  'website',
+  'logoUrl',
+  'facebook',
+  'linkedin',
+  'instagram',
+  'whatsapp',
+  'messenger',
+];
+
+function isSameCard(stored: HolderCard, incoming: { data: CardData; templateId: string }): boolean {
+  if (stored.templateId !== incoming.templateId) return false;
+  return IDENTITY_FIELDS.every(key => stored.data[key] === incoming.data[key]);
+}
 
 export default function HolderInstallPage() {
   const router = useRouter();
@@ -13,20 +36,24 @@ export default function HolderInstallPage() {
 
   useEffect(() => {
     (async () => {
+      const fragment = window.location.hash.slice(1);
+      const payload = decodeCard(fragment);
+
+      let existing: HolderCard | null = null;
       try {
-        if (await hasCard()) {
-          // Already saved on this device — a refresh or a repeat scan of the
-          // same QR shouldn't re-process or error, just go straight in.
-          router.replace('/holder');
-          return;
-        }
+        existing = await getCard();
       } catch {
         setState('error');
         return;
       }
 
-      const fragment = window.location.hash.slice(1);
-      const payload = decodeCard(fragment);
+      if (existing && payload && isSameCard(existing, payload)) {
+        // Already saved on this device — a refresh or a repeat scan of the
+        // same QR shouldn't re-process or error, just go straight in.
+        router.replace('/holder');
+        return;
+      }
+
       if (!payload) {
         setState('invalid');
         return;
