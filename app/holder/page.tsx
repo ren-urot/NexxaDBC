@@ -8,6 +8,7 @@ import { getCard, type HolderCard } from '@/lib/holder-storage';
 
 export default function HolderPage() {
   const [card, setCard] = useState<HolderCard | null | undefined>(undefined);
+  const [showIosHint, setShowIosHint] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -17,6 +18,12 @@ export default function HolderPage() {
         setCard(null);
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isStandalone = 'standalone' in navigator && (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    setShowIosHint(isIos && !isStandalone);
   }, []);
 
   if (card === undefined) {
@@ -43,6 +50,11 @@ export default function HolderPage() {
         <Component data={card.data} style={card.style} />
       </PhoneFrame>
       <CardActions data={card.data} />
+      {showIosHint && (
+        <p className="mt-4 text-center text-sm text-ink-soft">
+          On iPhone? Tap the Share button, then &quot;Add to Home Screen&quot; to install.
+        </p>
+      )}
     </main>
   );
 }
