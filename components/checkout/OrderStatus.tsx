@@ -1,6 +1,6 @@
 'use client';
 
-import { encodeCard, cardPayloadFromDraft } from '@/lib/card-encoding';
+import { encodeCard, cardPayloadFromDraft, hasCardContent, MAX_ENCODED_CARD_LENGTH } from '@/lib/card-encoding';
 import { CardInstallQR } from '@/components/shared/CardInstallQR';
 import type { StyleOverrides } from '@/lib/templates/types';
 
@@ -51,8 +51,11 @@ interface OrderStatusProps {
 
 export function OrderStatus({ status, adminNotes, draft, origin }: OrderStatusProps) {
   const copy = STATUS_COPY[status] ?? { label: status, body: '' };
-  const qrValue =
-    status === 'approved' && draft ? `${origin}/holder/install#${encodeCard(cardPayloadFromDraft(draft))}` : null;
+  const encoded =
+    status === 'approved' && draft && hasCardContent(draft) ? encodeCard(cardPayloadFromDraft(draft)) : null;
+  const qrTooLarge = encoded !== null && encoded.length > MAX_ENCODED_CARD_LENGTH;
+  const qrValue = encoded && !qrTooLarge ? `${origin}/holder/install#${encoded}` : null;
+  const provisioningWindowClosed = Boolean(status === 'approved' && draft && !hasCardContent(draft));
 
   return (
     <div className="space-y-6">
@@ -66,6 +69,15 @@ export function OrderStatus({ status, adminNotes, draft, origin }: OrderStatusPr
         </p>
       )}
       {qrValue && <CardInstallQR value={qrValue} />}
+      {qrTooLarge && (
+        <p role="alert" className="rounded-sm border border-ink/20 bg-stock px-4 py-3 text-sm text-ink">
+          Your card&apos;s details are too long to fit in a scannable code. Contact support to shorten your address
+          or links.
+        </p>
+      )}
+      {provisioningWindowClosed && (
+        <p className="text-sm text-ink-soft">This card&apos;s provisioning window has closed. Contact support for help.</p>
+      )}
     </div>
   );
 }

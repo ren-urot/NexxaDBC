@@ -1,7 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import { compressToEncodedURIComponent } from 'lz-string';
-import { encodeCard, decodeCard, cardPayloadFromDraft } from './card-encoding';
+import { encodeCard, decodeCard, cardPayloadFromDraft, MAX_ENCODED_CARD_LENGTH } from './card-encoding';
 import type { CardData, StyleOverrides } from '@/lib/templates/types';
+
+// A tiny deterministic PRNG (not crypto-secure, doesn't need to be) that
+// produces non-repeating filler — unlike 'A'.repeat(n), this defeats
+// lz-string's compression the way a genuine long name/address/URL would,
+// since real text doesn't repeat a single character.
+function randomIsh(length: number, seed: number): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  let x = seed;
+  for (let i = 0; i < length; i++) {
+    x = (x * 1103515245 + 12345) & 0x7fffffff;
+    result += chars[x % chars.length];
+  }
+  return result;
+}
 
 const fullData: CardData = {
   firstName: 'Juan',
@@ -40,29 +55,67 @@ describe('encodeCard / decodeCard', () => {
     expect(decodeCard(encoded)).toEqual({ data: minimal, style: {}, templateId: 'minimal-horizontal' });
   });
 
-  it('compresses a worst-case fully-filled card to a size a QR code can actually hold', () => {
+  it('a worst-case fully-filled card with realistic (non-repeating) content exceeds the QR threshold', () => {
+    // Builder's own field-length maximums, filled with high-entropy filler
+    // instead of a repeated character — a repeated-character fixture
+    // compresses to a tiny fraction of its raw size and would pass this
+    // assertion vacuously, masking the real risk: genuine names/addresses/
+    // URLs don't repeat and compress far less well. This worst case is
+    // reachable by a real customer, not a synthetic edge case, since
+    // Builder caps these fields by length only, not content.
     const worstCase: CardData = {
-      firstName: 'A'.repeat(100),
-      lastName: 'B'.repeat(100),
-      jobTitle: 'C'.repeat(150),
-      company: 'D'.repeat(150),
-      mobile: '1'.repeat(30),
-      email: `${'e'.repeat(240)}@example.com`,
-      address: 'F'.repeat(500),
-      website: `https://example.com/${'g'.repeat(230)}`,
-      logoUrl: `https://example.com/${'h'.repeat(230)}`,
-      facebook: `https://facebook.com/${'i'.repeat(230)}`,
-      linkedin: `https://linkedin.com/${'j'.repeat(230)}`,
-      instagram: `https://instagram.com/${'k'.repeat(230)}`,
-      whatsapp: '9'.repeat(30),
-      messenger: `https://m.me/${'l'.repeat(230)}`,
+      firstName: randomIsh(100, 1),
+      lastName: randomIsh(100, 2),
+      jobTitle: randomIsh(150, 3),
+      company: randomIsh(150, 4),
+      mobile: randomIsh(30, 5),
+      email: `${randomIsh(240, 6)}@example.com`,
+      address: randomIsh(500, 7),
+      website: `https://example.com/${randomIsh(230, 8)}`,
+      logoUrl: `https://example.com/${randomIsh(230, 9)}`,
+      facebook: `https://facebook.com/${randomIsh(230, 10)}`,
+      linkedin: `https://linkedin.com/${randomIsh(230, 11)}`,
+      instagram: `https://instagram.com/${randomIsh(230, 12)}`,
+      whatsapp: randomIsh(30, 13),
+      messenger: `https://m.me/${randomIsh(230, 14)}`,
     };
     const encoded = encodeCard({ data: worstCase, style, templateId: 'corporate-vertical' });
-    // Version 40 QR at error-correction level L holds 2,953 bytes in byte
-    // mode — the most permissive level. Encoded output must fit comfortably
-    // under that even in this worst case.
-    expect(encoded.length).toBeLessThan(2953);
+    // This genuinely exceeds the threshold — the QR-rendering call sites
+    // are responsible for detecting this and falling back to an
+    // explanatory message instead of crashing (see OrderStatus.tsx and
+    // the admin order-detail page). This test only proves the threshold
+    // catches the real worst case; it is not asserting encoding always
+    // produces a renderable QR.
+    expect(encoded.length).toBeGreaterThan(MAX_ENCODED_CARD_LENGTH);
+    // Still round-trips correctly even though it's too large for a QR —
+    // decodeCard has no size limit of its own, only the QR-rendering layer
+    // does.
     expect(decodeCard(encoded)).toEqual({ data: worstCase, style, templateId: 'corporate-vertical' });
+  });
+
+  it('a realistic (non-adversarial) fully-filled card fits comfortably under the QR threshold', () => {
+    // A believable real-world maximum — full name, a long job title, a
+    // genuine long address, a few social profile URLs — should NOT trip
+    // the overflow fallback. This is what the original (now-replaced) test
+    // intended to prove, done honestly this time.
+    const believableFull: CardData = {
+      firstName: 'Maria Anunciacion',
+      lastName: 'Dela Cruz-Santos',
+      jobTitle: 'Senior Vice President of Business Development',
+      company: 'ABC Corporation International Holdings, Inc.',
+      mobile: '+639171234567',
+      email: 'maria.delacruz.santos@abccorporation.com',
+      address: '123 Ayala Avenue, Makati City, Metro Manila, Philippines 1226',
+      website: 'https://www.abccorporation.com',
+      logoUrl: 'https://blob.example.com/logos/juan-abc123.png',
+      facebook: 'https://facebook.com/abccorporation',
+      linkedin: 'https://linkedin.com/in/maria-delacruz-santos',
+      instagram: 'https://instagram.com/abccorp',
+      whatsapp: '+639171234567',
+      messenger: 'https://m.me/abccorporation',
+    };
+    const encoded = encodeCard({ data: believableFull, style, templateId: 'corporate-vertical' });
+    expect(encoded.length).toBeLessThan(MAX_ENCODED_CARD_LENGTH);
   });
 
   it('returns null for garbage input', () => {

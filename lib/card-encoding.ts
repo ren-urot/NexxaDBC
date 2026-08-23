@@ -4,6 +4,15 @@ import type { CardData, StyleOverrides } from '@/lib/templates/types';
 
 const SCHEMA_VERSION = 1;
 
+// qrcode.react (this app's only QR renderer) defaults to error-correction
+// level L, whose byte-mode capacity tops out at 2,953 bytes — a card with
+// long optional fields (address, several social URLs, none of which
+// Builder currently caps) can exceed that and throw during render. This
+// threshold leaves headroom below the hard limit for the
+// `{origin}/holder/install#` prefix both QR-rendering call sites wrap the
+// encoded value in.
+export const MAX_ENCODED_CARD_LENGTH = 2700;
+
 export interface EncodedCardPayload {
   data: CardData;
   style: StyleOverrides;
@@ -175,4 +184,17 @@ export function cardPayloadFromDraft(draft: {
       messenger: draft.messenger ?? undefined,
     },
   };
+}
+
+/**
+ * True once a draft's identifying fields have survived long enough to
+ * build a real card from — false once the 48h retention cron has scrubbed
+ * them back to empty strings. Both QR-rendering call sites use this to
+ * distinguish "this order was just approved" from "this order was
+ * approved a while ago and its PII has already been cleared," which
+ * otherwise look identical (draft row still exists, just empty) and would
+ * silently render a QR that decodes as invalid.
+ */
+export function hasCardContent(draft: { firstName: string | null; lastName: string | null }): boolean {
+  return Boolean(draft.firstName && draft.lastName);
 }

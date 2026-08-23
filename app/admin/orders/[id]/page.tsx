@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
-import { encodeCard, cardPayloadFromDraft } from '@/lib/card-encoding';
+import { encodeCard, cardPayloadFromDraft, hasCardContent, MAX_ENCODED_CARD_LENGTH } from '@/lib/card-encoding';
 import { CardInstallQR } from '@/components/shared/CardInstallQR';
 import type { StyleOverrides } from '@/lib/templates/types';
 
@@ -78,10 +78,13 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
   if (!order) return <p className="p-8 font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">Loading…</p>;
 
-  const qrValue =
-    order.status === 'approved' && order.draft
-      ? `${origin}/holder/install#${encodeCard(cardPayloadFromDraft(order.draft))}`
+  const encoded =
+    order.status === 'approved' && order.draft && hasCardContent(order.draft)
+      ? encodeCard(cardPayloadFromDraft(order.draft))
       : null;
+  const qrTooLarge = encoded !== null && encoded.length > MAX_ENCODED_CARD_LENGTH;
+  const qrValue = encoded && !qrTooLarge ? `${origin}/holder/install#${encoded}` : null;
+  const provisioningWindowClosed = Boolean(order.status === 'approved' && order.draft && !hasCardContent(order.draft));
 
   return (
     <main className="mx-auto w-full max-w-2xl px-6 py-16">
@@ -143,6 +146,17 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
         <div className="mt-8">
           <CardInstallQR value={qrValue} />
         </div>
+      )}
+      {qrTooLarge && (
+        <p role="alert" className="mt-8 rounded-sm border border-ink/20 bg-stock px-4 py-3 text-sm text-ink">
+          This card&apos;s details are too long to fit in a scannable code — the customer&apos;s address or a social
+          link is unusually long. Contact them to shorten it, or shorten it directly in the database.
+        </p>
+      )}
+      {provisioningWindowClosed && (
+        <p className="mt-8 text-sm text-ink-soft">
+          This card&apos;s provisioning window has closed and its details have been archived.
+        </p>
       )}
     </main>
   );
