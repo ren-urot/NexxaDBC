@@ -8,7 +8,18 @@ import { getCard, type HolderCard } from '@/lib/holder-storage';
 
 export default function HolderPage() {
   const [card, setCard] = useState<HolderCard | null | undefined>(undefined);
-  const [showIosHint, setShowIosHint] = useState(false);
+  // Lazy initializer rather than an effect + setState: this page's JSX only
+  // ever renders past the "Loading…" state once `card` resolves (below),
+  // which happens strictly after mount — so this value is never part of the
+  // server/client hydration comparison and doesn't need effect-based
+  // deferral. Matches the existing `origin` pattern in
+  // app/admin/orders/[id]/page.tsx.
+  const [showIosHint] = useState(() => {
+    if (typeof navigator === 'undefined') return false;
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isStandalone = 'standalone' in navigator && (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    return isIos && !isStandalone;
+  });
 
   useEffect(() => {
     (async () => {
@@ -18,12 +29,6 @@ export default function HolderPage() {
         setCard(null);
       }
     })();
-  }, []);
-
-  useEffect(() => {
-    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isStandalone = 'standalone' in navigator && (navigator as Navigator & { standalone?: boolean }).standalone === true;
-    setShowIosHint(isIos && !isStandalone);
   }, []);
 
   if (card === undefined) {
