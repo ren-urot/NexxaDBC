@@ -26,7 +26,7 @@ export function LivePreview({
   return (
     <PhoneFrame
       orientation={template.orientation}
-      label={`Proof · ${template.name} · ${template.orientation}`}
+      label={`Preview · ${template.name} · ${template.orientation}`}
     >
       <Component data={previewData} style={style} />
     </PhoneFrame>

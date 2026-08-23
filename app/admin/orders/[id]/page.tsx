@@ -105,7 +105,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
       )}
 
       {error && (
-        <p role="alert" className="mt-4 text-sm text-[#b3452c]">
+        <p role="alert" className="mt-4 text-sm text-error">
           {error}
         </p>
       )}

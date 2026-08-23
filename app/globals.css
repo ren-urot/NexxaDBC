@@ -1,21 +1,28 @@
 @import "tailwindcss";
 
 /*
- * Proof-sheet palette: cool bone cardstock + cool near-black ink + one teal
- * "scan" accent marking the moment a printed thing becomes a digital one.
- * Deliberately not warm cream/terracotta, not dark-mode-first.
+ * Nexxa DBC palette: warm off-white background, vivid orange as the single
+ * accent (buttons, links, focus rings, the "scan" moment), near-black text.
+ * Token names are unchanged from the app's earlier design pass on purpose —
+ * every page already styles itself with bg-paper/text-ink/border-scan/etc.,
+ * so redefining these values here re-skins the whole app consistently
+ * without editing each page's markup.
  */
 @theme inline {
-  --color-paper: #eeeae1;
-  --color-ink: #17191d;
-  --color-ink-soft: #4a4a46;
-  --color-scan: #1fa6a0;
-  --color-line: #d8d2c4;
+  --color-paper: #fff8f4;
+  --color-ink: #171717;
+  --color-ink-soft: #6b7280;
+  --color-scan: #ff5a1f;
+  --color-scan-dark: #e8490f;
+  --color-tint: #ffe4d3;
+  --color-line: #f0e0d5;
   --color-stock: #ffffff;
+  --color-error: #dc2626;
 
-  --font-display: var(--font-fraunces);
-  --font-sans: var(--font-space-grotesk);
+  --font-display: var(--font-plus-jakarta-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
+  --font-script: var(--font-caveat);
 }
 
 :root {
@@ -32,41 +39,6 @@ body {
 ::selection {
   background: var(--color-scan);
   color: var(--color-stock);
-}
-
-/* Registration crop marks — the recurring "proof" motif around every live
-   card preview. Four independent corners (a pseudo-element pair can't cover
-   all four), each a short two-line L drawn just outside the card's edge. */
-.crop-mark {
-  position: absolute;
-  width: 1.1rem;
-  height: 1.1rem;
-  border-color: var(--color-ink);
-  opacity: 0.55;
-}
-.crop-mark--tl {
-  top: -0.55rem;
-  left: -0.55rem;
-  border-top: 1px solid;
-  border-left: 1px solid;
-}
-.crop-mark--tr {
-  top: -0.55rem;
-  right: -0.55rem;
-  border-top: 1px solid;
-  border-right: 1px solid;
-}
-.crop-mark--bl {
-  bottom: -0.55rem;
-  left: -0.55rem;
-  border-bottom: 1px solid;
-  border-left: 1px solid;
-}
-.crop-mark--br {
-  bottom: -0.55rem;
-  right: -0.55rem;
-  border-bottom: 1px solid;
-  border-right: 1px solid;
 }
 
 @media (prefers-reduced-motion: no-preference) {

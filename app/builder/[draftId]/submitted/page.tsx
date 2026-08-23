@@ -33,13 +33,13 @@ export default function SubmittedPage({ params }: { params: Promise<{ draftId: s
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-4 px-6 py-24 text-center">
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-scan">Approved for press</p>
+      <p className="font-mono text-xs uppercase tracking-[0.2em] text-scan">Ready</p>
       <h1 className="font-display text-4xl font-medium tracking-tight text-ink">
         Thanks — your card is ready for checkout.
       </h1>
       <p className="text-ink-soft">One-time payment, no subscription.</p>
       {error && (
-        <p role="alert" className="text-sm text-[#b3452c]">
+        <p role="alert" className="text-sm text-error">
           {error}
         </p>
       )}

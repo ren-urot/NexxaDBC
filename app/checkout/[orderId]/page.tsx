@@ -89,7 +89,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ orderId: st
           </>
         )}
         {error && (
-          <p role="alert" className="text-sm text-[#b3452c]">
+          <p role="alert" className="text-sm text-error">
             {error}
           </p>
         )}

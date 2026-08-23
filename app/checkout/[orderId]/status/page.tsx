@@ -111,7 +111,7 @@ export default function OrderStatusPage({ params }: { params: Promise<{ orderId:
             </>
           )}
           {error && (
-            <p role="alert" className="text-sm text-[#b3452c]">
+            <p role="alert" className="text-sm text-error">
               {error}
             </p>
           )}

@@ -42,7 +42,7 @@ export default function AdminOrdersPage() {
       </a>
       <div className="mt-8">
         {error ? (
-          <p role="alert" className="text-sm text-[#b3452c]">
+          <p role="alert" className="text-sm text-error">
             Couldn&apos;t load orders. Try refreshing, or sign in again if your session expired.
           </p>
         ) : orders ? (

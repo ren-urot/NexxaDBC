@@ -38,10 +38,10 @@ export default function TemplatesPage() {
 
   return (
     <main className="mx-auto w-full max-w-4xl px-6 py-16 sm:px-10">
-      <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Specimen book</p>
-      <h1 className="font-display text-4xl font-medium tracking-tight text-ink">Choose your stock.</h1>
+      <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Templates</p>
+      <h1 className="font-display text-4xl font-medium tracking-tight text-ink">Choose your design.</h1>
       <p className="mt-3 max-w-lg text-ink-soft">
-        Ten templates, five houses, two formats. Every proof below is the real thing — no
+        Ten templates, five styles, two formats. Every preview below is the real thing — no
         placeholders swapped in later.
       </p>
       {error && (

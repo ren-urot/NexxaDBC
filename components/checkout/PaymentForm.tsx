@@ -51,7 +51,7 @@ export function PaymentForm({ method, onSubmit, submitting }: PaymentFormProps) 
         />
       </label>
       {error && (
-        <span role="alert" className="block text-sm text-[#b3452c]">
+        <span role="alert" className="block text-sm text-error">
           {error}
         </span>
       )}

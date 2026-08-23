@@ -247,7 +247,7 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
   if (loadFailed) {
     return (
       <div className="max-w-md space-y-4" role="alert">
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-scan">Proof unavailable</p>
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-scan">Preview unavailable</p>
         <h1 className="font-display text-3xl font-medium text-ink">We couldn&apos;t find that card</h1>
         <p className="text-ink-soft">This draft may have expired, or the link may be incorrect.</p>
         <Link
@@ -272,7 +272,7 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
   if (!template) {
     return (
       <div className="max-w-md space-y-4" role="alert">
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-scan">Proof unavailable</p>
+        <p className="font-mono text-xs uppercase tracking-[0.18em] text-scan">Preview unavailable</p>
         <h1 className="font-display text-3xl font-medium text-ink">This card can&apos;t be edited</h1>
         <p className="text-ink-soft">Its template is no longer available.</p>
         <Link
@@ -292,10 +292,10 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
   return (
     <div>
       <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">
-        Job ticket · {template.name}
+        {template.name} template
       </p>
       <h1 className="mb-10 font-display text-4xl font-medium tracking-tight text-ink">
-        Fill in the plate.
+        Add your details.
       </h1>
       {error && (
         <p role="alert" className="mb-8 max-w-lg rounded-sm border border-ink/20 bg-stock px-4 py-3 text-sm text-ink">

@@ -17,7 +17,7 @@ export default function Error({
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-4 px-6 py-24">
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-scan">Press error</p>
+      <p className="font-mono text-xs uppercase tracking-[0.2em] text-scan">Error</p>
       <h1 className="font-display text-3xl font-medium text-ink">Something went wrong</h1>
       <p className="text-ink-soft">
         We hit an unexpected problem. Your card draft is saved — try again, or start over from the

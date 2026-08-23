@@ -89,7 +89,7 @@ export function InfoForm({ data, onChange, onLogoUpload, allowLogo = true }: Inf
         <span className={microLabelClass}>{label}</span>
         <input aria-label={label} className={inputClass} {...field(name)} />
         {errorText && (
-          <span role="alert" className="mt-1 block text-xs text-[#b3452c]">
+          <span role="alert" className="mt-1 block text-xs text-error">
             {errorText}
           </span>
         )}
@@ -101,7 +101,7 @@ export function InfoForm({ data, onChange, onLogoUpload, allowLogo = true }: Inf
     <form className="space-y-10">
       <fieldset className="space-y-5">
         <legend className="mb-1 font-mono text-xs uppercase tracking-[0.18em] text-scan">
-          Required — the plate
+          Required details
         </legend>
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
           {renderField('First name', 'firstName')}
@@ -115,7 +115,7 @@ export function InfoForm({ data, onChange, onLogoUpload, allowLogo = true }: Inf
 
       <fieldset className="space-y-5">
         <legend className="mb-1 font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">
-          Optional — finishing
+          Optional details
         </legend>
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
           {renderField('Address', 'address')}
