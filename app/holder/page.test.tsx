@@ -35,4 +35,10 @@ describe('HolderPage', () => {
     expect(await screen.findByText('Juan Dela Cruz')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /save to contacts/i })).toBeInTheDocument();
   });
+
+  it('falls back to the empty state when loading the card fails', async () => {
+    vi.mocked(getCard).mockRejectedValue(new Error('storage error'));
+    render(<HolderPage />);
+    expect(await screen.findByText(/no card yet/i)).toBeInTheDocument();
+  });
 });

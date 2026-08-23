@@ -11,7 +11,11 @@ export default function HolderPage() {
 
   useEffect(() => {
     (async () => {
-      setCard(await getCard());
+      try {
+        setCard(await getCard());
+      } catch {
+        setCard(null);
+      }
     })();
   }, []);
 
