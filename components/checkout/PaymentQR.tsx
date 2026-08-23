@@ -5,7 +5,7 @@ import { QRCodeSVG } from 'qrcode.react';
 const DEMO_PAYMENT_INFO: Record<'gcash' | 'bank_transfer', { label: string; value: string }> = {
   gcash: {
     label: 'GCash · Demo',
-    value: 'GCash: 0917 123 4567 — DBC Demo Merchant (DEMO ONLY)',
+    value: 'GCash: 0917 123 4567, DBC Demo Merchant (DEMO ONLY)',
   },
   bank_transfer: {
     label: 'Bank Transfer · Demo',

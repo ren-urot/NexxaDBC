@@ -149,7 +149,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
       )}
       {qrTooLarge && (
         <p role="alert" className="mt-8 rounded-sm border border-ink/20 bg-stock px-4 py-3 text-sm text-ink">
-          This card&apos;s details are too long to fit in a scannable code — the customer&apos;s address or a social
+          This card&apos;s details are too long to fit in a scannable code. The customer&apos;s address or a social
           link is unusually long. Contact them to shorten it, or shorten it directly in the database.
         </p>
       )}

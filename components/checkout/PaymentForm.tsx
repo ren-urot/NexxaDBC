@@ -60,7 +60,7 @@ export function PaymentForm({ method, onSubmit, submitting }: PaymentFormProps) 
         disabled={submitting}
         className="rounded-full bg-ink px-6 py-3 font-medium text-paper transition-colors hover:bg-ink/90 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-scan"
       >
-        {submitting ? 'Submitting…' : "I've paid — submit for review"}
+        {submitting ? 'Submitting…' : "I've paid, submit for review"}
       </button>
     </form>
   );

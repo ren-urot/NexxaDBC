@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TemplateGallery } from '@/components/builder/TemplateGallery';
+import { SiteHeader } from '@/components/layout/SiteHeader';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 
 export default function TemplatesPage() {
   const router = useRouter();
@@ -37,21 +39,25 @@ export default function TemplatesPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-6 py-16 sm:px-10">
-      <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Templates</p>
-      <h1 className="font-display text-4xl font-medium tracking-tight text-ink">Choose your design.</h1>
-      <p className="mt-3 max-w-lg text-ink-soft">
-        Ten templates, five styles, two formats. Every preview below is the real thing — no
-        placeholders swapped in later.
-      </p>
-      {error && (
-        <p role="alert" className="mt-4 rounded-sm border border-ink/20 bg-stock px-4 py-3 text-sm text-ink">
-          {error}
+    <>
+      <SiteHeader />
+      <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-16 sm:px-10">
+        <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Templates</p>
+        <h1 className="font-display text-4xl font-medium tracking-tight text-ink">Choose your design.</h1>
+        <p className="mt-3 max-w-lg text-ink-soft">
+          Twelve templates, six styles, two formats. Every preview below is the real thing, no
+          placeholders swapped in later.
         </p>
-      )}
-      <div className="mt-10">
-        <TemplateGallery onSelect={handleSelect} />
-      </div>
-    </main>
+        {error && (
+          <p role="alert" className="mt-4 rounded-sm border border-ink/20 bg-stock px-4 py-3 text-sm text-ink">
+            {error}
+          </p>
+        )}
+        <div className="mt-10">
+          <TemplateGallery onSelect={handleSelect} />
+        </div>
+      </main>
+      <SiteFooter />
+    </>
   );
 }

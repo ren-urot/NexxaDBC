@@ -5,6 +5,8 @@ import { OrderStatus } from '@/components/checkout/OrderStatus';
 import { PaymentMethodSelector } from '@/components/checkout/PaymentMethodSelector';
 import { PaymentQR } from '@/components/checkout/PaymentQR';
 import { PaymentForm } from '@/components/checkout/PaymentForm';
+import { SiteHeader } from '@/components/layout/SiteHeader';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 
 interface OrderState {
   id: string;
@@ -84,39 +86,55 @@ export default function OrderStatusPage({ params }: { params: Promise<{ orderId:
 
   if (loadFailed) {
     return (
-      <main className="mx-auto max-w-xl px-6 py-24" role="alert">
-        <h1 className="font-display text-3xl font-medium text-ink">We couldn&apos;t find that order</h1>
-      </main>
+      <>
+        <SiteHeader />
+        <main className="mx-auto max-w-xl flex-1 px-6 py-24" role="alert">
+          <h1 className="font-display text-3xl font-medium text-ink">We couldn&apos;t find that order</h1>
+        </main>
+        <SiteFooter />
+      </>
     );
   }
 
-  if (!order) return <p className="p-8 font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">Loading…</p>;
+  if (!order) {
+    return (
+      <>
+        <SiteHeader />
+        <p className="flex-1 p-8 font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">Loading…</p>
+        <SiteFooter />
+      </>
+    );
+  }
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-6 py-16">
-      <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Order status</p>
-      <h1 className="font-display text-4xl font-medium tracking-tight text-ink">₱{order.amount}</h1>
+    <>
+      <SiteHeader />
+      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
+        <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Order status</p>
+        <h1 className="font-display text-4xl font-medium tracking-tight text-ink">₱{order.amount}</h1>
 
-      <div className="mt-10">
-        <OrderStatus status={order.status} adminNotes={order.adminNotes} draft={order.draft} origin={origin} />
-      </div>
-
-      {order.status === 'rejected' && (
-        <div className="mt-8 space-y-8">
-          <PaymentMethodSelector value={method} onChange={setMethod} />
-          {method && (
-            <>
-              <PaymentQR method={method} />
-              <PaymentForm method={method} onSubmit={handleResubmit} submitting={submitting} />
-            </>
-          )}
-          {error && (
-            <p role="alert" className="text-sm text-error">
-              {error}
-            </p>
-          )}
+        <div className="mt-10">
+          <OrderStatus status={order.status} adminNotes={order.adminNotes} draft={order.draft} origin={origin} />
         </div>
-      )}
-    </main>
+
+        {order.status === 'rejected' && (
+          <div className="mt-8 space-y-8">
+            <PaymentMethodSelector value={method} onChange={setMethod} />
+            {method && (
+              <>
+                <PaymentQR method={method} />
+                <PaymentForm method={method} onSubmit={handleResubmit} submitting={submitting} />
+              </>
+            )}
+            {error && (
+              <p role="alert" className="text-sm text-error">
+                {error}
+              </p>
+            )}
+          </div>
+        )}
+      </main>
+      <SiteFooter />
+    </>
   );
 }

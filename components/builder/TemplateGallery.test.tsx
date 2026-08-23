@@ -4,15 +4,15 @@ import userEvent from '@testing-library/user-event';
 import { TemplateGallery } from './TemplateGallery';
 
 describe('TemplateGallery', () => {
-  it('lists all 10 templates by default', () => {
+  it('lists all 12 templates by default', () => {
     render(<TemplateGallery onSelect={vi.fn()} />);
-    expect(screen.getAllByRole('button', { name: /select/i })).toHaveLength(10);
+    expect(screen.getAllByRole('button', { name: /select/i })).toHaveLength(12);
   });
 
   it('filters by orientation', async () => {
     render(<TemplateGallery onSelect={vi.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: /horizontal/i }));
-    expect(screen.getAllByRole('button', { name: /select/i })).toHaveLength(5);
+    expect(screen.getAllByRole('button', { name: /select/i })).toHaveLength(6);
   });
 
   it('calls onSelect with the template id and orientation', async () => {

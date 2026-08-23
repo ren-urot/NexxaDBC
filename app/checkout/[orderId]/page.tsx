@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { PaymentMethodSelector } from '@/components/checkout/PaymentMethodSelector';
 import { PaymentQR } from '@/components/checkout/PaymentQR';
 import { PaymentForm } from '@/components/checkout/PaymentForm';
+import { SiteHeader } from '@/components/layout/SiteHeader';
+import { SiteFooter } from '@/components/layout/SiteFooter';
 
 interface OrderState {
   id: string;
@@ -65,35 +67,51 @@ export default function CheckoutPage({ params }: { params: Promise<{ orderId: st
 
   if (loadFailed) {
     return (
-      <main className="mx-auto max-w-xl px-6 py-24" role="alert">
-        <h1 className="font-display text-3xl font-medium text-ink">We couldn&apos;t find that order</h1>
-        <p className="mt-2 text-ink-soft">The link may be incorrect, or the order may not belong to this browser.</p>
-      </main>
+      <>
+        <SiteHeader />
+        <main className="mx-auto max-w-xl flex-1 px-6 py-24" role="alert">
+          <h1 className="font-display text-3xl font-medium text-ink">We couldn&apos;t find that order</h1>
+          <p className="mt-2 text-ink-soft">The link may be incorrect, or the order may not belong to this browser.</p>
+        </main>
+        <SiteFooter />
+      </>
     );
   }
 
-  if (!order) return <p className="p-8 font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">Loading…</p>;
+  if (!order) {
+    return (
+      <>
+        <SiteHeader />
+        <p className="flex-1 p-8 font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">Loading…</p>
+        <SiteFooter />
+      </>
+    );
+  }
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-6 py-16">
-      <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Checkout</p>
-      <h1 className="font-display text-4xl font-medium tracking-tight text-ink">₱{order.amount} — one time.</h1>
-      <p className="mt-3 text-ink-soft">Pick a payment method, pay, and tell us the reference number.</p>
+    <>
+      <SiteHeader />
+      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
+        <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Checkout</p>
+        <h1 className="font-display text-4xl font-medium tracking-tight text-ink">₱{order.amount}, one time.</h1>
+        <p className="mt-3 text-ink-soft">Pick a payment method, pay, and tell us the reference number.</p>
 
-      <div className="mt-10 space-y-8">
-        <PaymentMethodSelector value={method} onChange={setMethod} />
-        {method && (
-          <>
-            <PaymentQR method={method} />
-            <PaymentForm method={method} onSubmit={handleSubmit} submitting={submitting} />
-          </>
-        )}
-        {error && (
-          <p role="alert" className="text-sm text-error">
-            {error}
-          </p>
-        )}
-      </div>
-    </main>
+        <div className="mt-10 space-y-8">
+          <PaymentMethodSelector value={method} onChange={setMethod} />
+          {method && (
+            <>
+              <PaymentQR method={method} />
+              <PaymentForm method={method} onSubmit={handleSubmit} submitting={submitting} />
+            </>
+          )}
+          {error && (
+            <p role="alert" className="text-sm text-error">
+              {error}
+            </p>
+          )}
+        </div>
+      </main>
+      <SiteFooter />
+    </>
   );
 }

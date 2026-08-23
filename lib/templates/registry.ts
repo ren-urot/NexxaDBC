@@ -9,6 +9,8 @@ import { MinimalVertical } from '@/components/templates/MinimalVertical';
 import { MinimalHorizontal } from '@/components/templates/MinimalHorizontal';
 import { ExecutiveVertical } from '@/components/templates/ExecutiveVertical';
 import { CreativeHorizontal } from '@/components/templates/CreativeHorizontal';
+import { SignatureVertical } from '@/components/templates/SignatureVertical';
+import { SignatureHorizontal } from '@/components/templates/SignatureHorizontal';
 
 export const templates: TemplateDefinition[] = [];
 
@@ -104,6 +106,25 @@ templates.push(
     orientation: 'horizontal',
     customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
     component: CreativeHorizontal,
+  }
+);
+
+templates.push(
+  {
+    id: 'signature-vertical',
+    name: 'Signature',
+    category: 'signature',
+    orientation: 'vertical',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
+    component: SignatureVertical,
+  },
+  {
+    id: 'signature-horizontal',
+    name: 'Signature',
+    category: 'signature',
+    orientation: 'horizontal',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
+    component: SignatureHorizontal,
   }
 );
 

@@ -14,7 +14,7 @@ export function CustomizePanel({ template, style, onChange }: CustomizePanelProp
   return (
     <fieldset className="space-y-5">
       <legend className="mb-1 font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">
-        Customize — the finish
+        Customize the finish
       </legend>
       <div className="flex flex-wrap items-end gap-8">
         {template.customizable.accentColor && (

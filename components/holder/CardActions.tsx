@@ -35,7 +35,7 @@ export function CardActions({ data }: { data: CardData }) {
     }
     try {
       await navigator.clipboard.writeText(shareData.url);
-      setShareError("Link copied — your browser can't open the share sheet directly.");
+      setShareError("Link copied. Your browser can't open the share sheet directly.");
     } catch {
       setShareError("Couldn't share or copy the link.");
     }

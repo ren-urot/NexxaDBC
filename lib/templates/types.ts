@@ -30,7 +30,8 @@ export type TemplateCategory =
   | 'modern'
   | 'minimal'
   | 'executive'
-  | 'creative';
+  | 'creative'
+  | 'signature';
 
 export interface CustomizableFieldBounds {
   accentColor: boolean;
