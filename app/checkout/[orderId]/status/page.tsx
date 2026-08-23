@@ -11,9 +11,24 @@ interface OrderState {
   status: string;
   amount: number;
   adminNotes: string | null;
-  provisioningToken: string | null;
-  provisioningTokenStatus: string | null;
-  provisioningExpiresAt: string | null;
+  draft: {
+    firstName: string | null;
+    lastName: string | null;
+    jobTitle: string | null;
+    company: string | null;
+    mobile: string | null;
+    email: string | null;
+    address: string | null;
+    website: string | null;
+    logoUrl: string | null;
+    facebook: string | null;
+    linkedin: string | null;
+    instagram: string | null;
+    whatsapp: string | null;
+    messenger: string | null;
+    templateId: string;
+    styleOverrides: { accentColor?: string; fontSizeStep?: number };
+  } | null;
 }
 
 export default function OrderStatusPage({ params }: { params: Promise<{ orderId: string }> }) {
@@ -83,14 +98,7 @@ export default function OrderStatusPage({ params }: { params: Promise<{ orderId:
       <h1 className="font-display text-4xl font-medium tracking-tight text-ink">₱{order.amount}</h1>
 
       <div className="mt-10">
-        <OrderStatus
-          status={order.status}
-          adminNotes={order.adminNotes}
-          provisioningToken={order.provisioningToken}
-          provisioningTokenStatus={order.provisioningTokenStatus}
-          provisioningExpiresAt={order.provisioningExpiresAt}
-          origin={origin}
-        />
+        <OrderStatus status={order.status} adminNotes={order.adminNotes} draft={order.draft} origin={origin} />
       </div>
 
       {order.status === 'rejected' && (
