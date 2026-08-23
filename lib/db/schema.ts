@@ -59,3 +59,21 @@ export const orders = pgTable('orders', {
 
 export type OrderRow = typeof orders.$inferSelect;
 export type OrderInsert = typeof orders.$inferInsert;
+
+export const customerHistory = pgTable('customer_history', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  orderId: uuid('order_id').notNull(),
+  firstName: varchar('first_name', { length: 100 }),
+  lastName: varchar('last_name', { length: 100 }),
+  jobTitle: varchar('job_title', { length: 150 }),
+  company: varchar('company', { length: 150 }),
+  mobile: varchar('mobile', { length: 30 }),
+  email: varchar('email', { length: 255 }),
+  templateId: varchar('template_id', { length: 64 }).notNull(),
+  amount: integer('amount').notNull(),
+  orderCreatedAt: timestamp('order_created_at').notNull(),
+  archivedAt: timestamp('archived_at').notNull().defaultNow(),
+});
+
+export type CustomerHistoryRow = typeof customerHistory.$inferSelect;
+export type CustomerHistoryInsert = typeof customerHistory.$inferInsert;

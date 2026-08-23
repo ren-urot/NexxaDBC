@@ -80,3 +80,8 @@ export async function uploadPaymentProof(file: File, orderId: string): Promise<s
   const blob = await put(pathname, file, { access: 'public' });
   return blob.url;
 }
+
+export async function deletePaymentProof(url: string): Promise<void> {
+  if (!hasBlobToken()) return delLocal(url);
+  await del(url);
+}
