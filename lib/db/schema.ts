@@ -62,7 +62,7 @@ export type OrderInsert = typeof orders.$inferInsert;
 
 export const customerHistory = pgTable('customer_history', {
   id: uuid('id').defaultRandom().primaryKey(),
-  orderId: uuid('order_id').notNull(),
+  orderId: uuid('order_id').notNull().unique(),
   firstName: varchar('first_name', { length: 100 }),
   lastName: varchar('last_name', { length: 100 }),
   jobTitle: varchar('job_title', { length: 150 }),

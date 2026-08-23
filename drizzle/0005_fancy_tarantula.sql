@@ -1,0 +1,1 @@
+ALTER TABLE "customer_history" ADD CONSTRAINT "customer_history_order_id_unique" UNIQUE("order_id");

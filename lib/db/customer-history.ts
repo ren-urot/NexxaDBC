@@ -13,8 +13,12 @@ export async function archiveOrder(input: {
   templateId: string;
   amount: number;
   orderCreatedAt: Date;
-}): Promise<CustomerHistoryRow> {
-  const [row] = await db.insert(customerHistory).values(input).returning();
+}): Promise<CustomerHistoryRow | undefined> {
+  const [row] = await db
+    .insert(customerHistory)
+    .values(input)
+    .onConflictDoNothing({ target: customerHistory.orderId })
+    .returning();
   return row;
 }
 
