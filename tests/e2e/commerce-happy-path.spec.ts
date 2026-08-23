@@ -49,4 +49,23 @@ test('submit a draft, pay, get approved, see the provisioning QR', async ({ page
   // Back on the customer side: the status page now shows the provisioning QR
   await page.goto(`/checkout/${orderId}/status`);
   await expect(page.getByText(/scan to add to your phone/i)).toBeVisible();
+
+  // Provisioning + Holder: extract the QR's encoded value (Playwright can't
+  // decode a rendered QR image, so the component carries it in a data
+  // attribute for exactly this purpose) and complete the transfer as if it
+  // had actually been scanned.
+  const qrValue = await page.locator('[data-qr-value]').getAttribute('data-qr-value');
+  expect(qrValue).toBeTruthy();
+
+  await page.goto(qrValue!);
+  await page.waitForURL(/\/holder$/);
+  await expect(page.getByText('Juan Dela Cruz')).toBeVisible();
+  await expect(page.getByRole('button', { name: /save to contacts/i })).toBeVisible();
+
+  // Refreshing /holder/install with the same (already-consumed-on-this-
+  // device) fragment must not error or re-process — it should just land
+  // back on /holder.
+  await page.goto(qrValue!);
+  await page.waitForURL(/\/holder$/);
+  await expect(page.getByText('Juan Dela Cruz')).toBeVisible();
 });
