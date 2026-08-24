@@ -1,5 +1,5 @@
 import type { TemplateProps } from '@/lib/templates/types';
-import { fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
+import { companyNameStyle, fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
 
 const SKYLINE_BUILDINGS = [
   { x: 0, w: 22, h: 60 },
@@ -91,7 +91,11 @@ export function SkylineHorizontal({ data, style }: TemplateProps) {
           />
         )}
         <div>
-          {data.company && <p className="text-sm text-gray-500">{data.company}</p>}
+          {data.company && (
+            <p className="text-gray-500" style={companyNameStyle(1)}>
+              {data.company}
+            </p>
+          )}
           <h1 className={`${fontSizeClass(3, style.fontSizeStep)} font-bold tracking-tight text-gray-900`}>
             {data.firstName.toUpperCase()} <span className="font-normal">{data.lastName.toUpperCase()}</span>
           </h1>

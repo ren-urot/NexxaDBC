@@ -1,12 +1,16 @@
+import { Mail, Phone } from 'lucide-react';
 import type { TemplateProps } from '@/lib/templates/types';
-import { fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
+import { companyNameStyle, fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
 
 export function MinimalVertical({ data, style }: TemplateProps) {
   const accent = resolveAccentColor(style, '#000000');
   return (
-    <div className="w-[320px] h-[560px] bg-white p-8 flex flex-col justify-center">
+    // Content flows from the top rather than being centered in the card, so
+    // it can't drift down into the QR reserved in the bottom-right corner
+    // (see lib/templates/qr-spec.ts).
+    <div className="w-[320px] h-[560px] bg-white p-8 flex flex-col">
       {data.company && (
-        <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-500`}>{data.company}</p>
+        <p className="text-gray-500" style={companyNameStyle(2, style.fontSizeStep)}>{data.company}</p>
       )}
       <h1 className={`${fontSizeClass(4, style.fontSizeStep)} font-light text-gray-900`}>
         {data.firstName} {data.lastName}
@@ -14,8 +18,14 @@ export function MinimalVertical({ data, style }: TemplateProps) {
       <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-500`}>{data.jobTitle}</p>
       <div data-testid="accent-divider" className="h-0.5 w-12 my-6" style={{ backgroundColor: accent }} />
       <div className="text-sm text-gray-700 space-y-1">
-        <p>{data.mobile}</p>
-        <p>{data.email}</p>
+        <p className="flex items-center gap-1.5">
+          <Phone className="h-3.5 w-3.5 shrink-0" />
+          {data.mobile}
+        </p>
+        <p className="flex items-center gap-1.5">
+          <Mail className="h-3.5 w-3.5 shrink-0" />
+          {data.email}
+        </p>
         {data.website && <p>{data.website}</p>}
         {data.address && <p>{data.address}</p>}
         <div className="flex gap-3 pt-2">

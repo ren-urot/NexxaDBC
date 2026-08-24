@@ -1,5 +1,6 @@
+import { Mail, Phone } from 'lucide-react';
 import type { TemplateProps } from '@/lib/templates/types';
-import { fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
+import { companyNameStyle, fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
 
 export function CreativeHorizontal({ data, style }: TemplateProps) {
   const accent = resolveAccentColor(style, '#ec4899');
@@ -18,10 +19,22 @@ export function CreativeHorizontal({ data, style }: TemplateProps) {
         </h1>
         <p className={`${fontSizeClass(1, style.fontSizeStep)} text-center`}>{data.jobTitle}</p>
       </div>
-      <div className="flex-1 flex flex-col justify-center p-6 text-sm text-gray-700 space-y-1">
-        {data.company && <p className="font-semibold text-gray-900">{data.company}</p>}
-        <p>{data.mobile}</p>
-        <p>{data.email}</p>
+      {/* Capped to keep contact details clear of the QR reserved in the
+          bottom-right corner (see lib/templates/qr-spec.ts). */}
+      <div className="flex-1 flex flex-col justify-center p-6 max-w-[140px] text-xs text-gray-700 space-y-1">
+        {data.company && (
+          <p className="font-semibold text-gray-900" style={companyNameStyle(1)}>
+            {data.company}
+          </p>
+        )}
+        <p className="flex items-center gap-1">
+          <Phone className="h-3 w-3 shrink-0" />
+          {data.mobile}
+        </p>
+        <p className="flex items-center gap-1">
+          <Mail className="h-3 w-3 shrink-0" />
+          {data.email}
+        </p>
         {data.website && <p>{data.website}</p>}
         {data.address && <p>{data.address}</p>}
         <div className="flex gap-3 pt-2">

@@ -1,5 +1,6 @@
+import { Mail, Phone } from 'lucide-react';
 import type { TemplateProps } from '@/lib/templates/types';
-import { fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
+import { companyNameStyle, fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
 
 export function ModernVertical({ data, style }: TemplateProps) {
   const accent = resolveAccentColor(style, '#22d3ee');
@@ -14,7 +15,7 @@ export function ModernVertical({ data, style }: TemplateProps) {
       />
       {data.logoUrl && <img src={data.logoUrl} alt={data.company ? `${data.company} logo` : 'Company logo'} className="h-10 mb-6 relative" />}
       {data.company && (
-        <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-300 relative`}>{data.company}</p>
+        <p className="text-gray-300 relative" style={companyNameStyle(2, style.fontSizeStep)}>{data.company}</p>
       )}
       <h1 className={`${fontSizeClass(5, style.fontSizeStep)} font-black relative`}>
         {data.firstName}
@@ -25,8 +26,14 @@ export function ModernVertical({ data, style }: TemplateProps) {
         {data.jobTitle}
       </p>
       <div className="mt-8 text-sm text-gray-300 space-y-1 relative">
-        <p>{data.mobile}</p>
-        <p>{data.email}</p>
+        <p className="flex items-center gap-1.5">
+          <Phone className="h-3.5 w-3.5 shrink-0" />
+          {data.mobile}
+        </p>
+        <p className="flex items-center gap-1.5">
+          <Mail className="h-3.5 w-3.5 shrink-0" />
+          {data.email}
+        </p>
         {data.website && <p>{data.website}</p>}
         {data.address && <p>{data.address}</p>}
         <div className="flex gap-3 pt-2">

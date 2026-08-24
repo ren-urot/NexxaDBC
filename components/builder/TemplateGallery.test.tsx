@@ -11,7 +11,7 @@ describe('TemplateGallery', () => {
 
   it('filters by orientation', async () => {
     render(<TemplateGallery onSelect={vi.fn()} />);
-    await userEvent.click(screen.getByRole('button', { name: /horizontal/i }));
+    await userEvent.click(screen.getByRole('button', { name: 'Horizontal' }));
     expect(screen.getAllByRole('button', { name: /select/i })).toHaveLength(7);
   });
 
@@ -21,5 +21,15 @@ describe('TemplateGallery', () => {
     const firstSelect = screen.getAllByRole('button', { name: /select/i })[0];
     await userEvent.click(firstSelect);
     expect(onSelect).toHaveBeenCalledWith(expect.any(String), expect.stringMatching(/vertical|horizontal/));
+  });
+
+  it('opens a larger preview when a card thumbnail is clicked, and closes it again', async () => {
+    render(<TemplateGallery onSelect={vi.fn()} />);
+    const firstPreview = screen.getAllByRole('button', { name: /view a larger preview/i })[0];
+    await userEvent.click(firstPreview);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /close preview/i }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

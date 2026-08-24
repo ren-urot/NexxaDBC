@@ -4,18 +4,11 @@ import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
 import { getTemplate } from '@/lib/templates/registry';
+import { CARD_QR_HORIZONTAL, CARD_QR_VERTICAL } from '@/lib/templates/qr-spec';
 import { PhoneFrame } from '@/components/builder/PhoneFrame';
 import { InstallAppButton } from '@/components/holder/InstallAppButton';
 import { encodeCard, MAX_ENCODED_CARD_LENGTH } from '@/lib/card-encoding';
 import { getCardById, type HolderCard } from '@/lib/holder-storage';
-
-// Every horizontal template gets rotated to fill the phone screen
-// (rotateHorizontalToFill), which consistently puts a decorative element
-// (stripe, skyline, etc.) across the lower third of the card — this exact
-// size and offset was tuned against that shared layout so the QR always
-// clears it, rather than being re-tuned per template.
-const HORIZONTAL_QR = { size: 139, right: 36, bottom: 76 };
-const VERTICAL_QR = { size: 64, right: 16, bottom: 16 };
 
 export default function HolderCardPage({ params }: { params: Promise<{ cardId: string }> }) {
   const { cardId } = use(params);
@@ -64,7 +57,7 @@ export default function HolderCardPage({ params }: { params: Promise<{ cardId: s
   const encoded = encodeCard({ data: card.data, style: card.style, templateId: card.templateId });
   const qrTooLarge = encoded.length > MAX_ENCODED_CARD_LENGTH;
   const qrValue = qrTooLarge ? null : `${origin}/holder/install#${encoded}`;
-  const qrSpec = template.orientation === 'horizontal' ? HORIZONTAL_QR : VERTICAL_QR;
+  const qrSpec = template.orientation === 'horizontal' ? CARD_QR_HORIZONTAL : CARD_QR_VERTICAL;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-1 flex-col items-center bg-[#0b0b0c] px-3 py-12">
@@ -96,7 +89,10 @@ export default function HolderCardPage({ params }: { params: Promise<{ cardId: s
             {qrValue && (
               <div
                 className="absolute z-30 rounded-md bg-white p-1.5 shadow-md"
-                style={{ right: `${qrSpec.right}px`, bottom: `${qrSpec.bottom}px` }}
+                style={{
+                  bottom: `${qrSpec.bottom}px`,
+                  ...('right' in qrSpec ? { right: `${qrSpec.right}px` } : { left: `${qrSpec.left}px` }),
+                }}
               >
                 <QRCodeSVG value={qrValue} size={qrSpec.size} />
               </div>

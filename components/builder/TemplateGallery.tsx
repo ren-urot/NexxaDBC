@@ -1,11 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { listTemplates } from '@/lib/templates/registry';
-import type { Orientation } from '@/lib/templates/types';
+import { CARD_QR_HORIZONTAL, CARD_QR_VERTICAL } from '@/lib/templates/qr-spec';
+import type { Orientation, TemplateDefinition } from '@/lib/templates/types';
 
 interface TemplateGalleryProps {
   onSelect: (templateId: string, orientation: Orientation) => void;
+}
+
+// Not a real transfer link — every finished card gets its own QR pointing at
+// its own transfer URL (see app/holder/[cardId]/page.tsx). This one only
+// shows where that QR will sit on the card face, so a corner that's actually
+// spoken for doesn't read as unused blank space while picking a template.
+const DUMMY_QR_VALUE = 'https://nexxadbc.vercel.app';
+
+function TemplatePreview({ template }: { template: TemplateDefinition }) {
+  const qrSpec = template.orientation === 'horizontal' ? CARD_QR_HORIZONTAL : CARD_QR_VERTICAL;
+  return (
+    <div className="relative">
+      <template.component data={SAMPLE_DATA} style={{}} />
+      <div
+        className="absolute z-30 rounded-md bg-white p-1.5 shadow-md"
+        style={{
+          bottom: `${qrSpec.bottom}px`,
+          ...('right' in qrSpec ? { right: `${qrSpec.right}px` } : { left: `${qrSpec.left}px` }),
+        }}
+      >
+        <QRCodeSVG value={DUMMY_QR_VALUE} size={qrSpec.size} />
+      </div>
+    </div>
+  );
 }
 
 const FILTERS: { label: string; value: Orientation | undefined }[] = [
@@ -14,9 +40,29 @@ const FILTERS: { label: string; value: Orientation | undefined }[] = [
   { label: 'Horizontal', value: 'horizontal' },
 ];
 
+const SAMPLE_DATA = {
+  firstName: 'Juan',
+  lastName: 'Dela Cruz',
+  jobTitle: 'Sales Director',
+  company: 'ABC Corporation',
+  mobile: '+63 917 123 4567',
+  email: 'juan@abc.com',
+};
+
 export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
   const [orientationFilter, setOrientationFilter] = useState<Orientation | undefined>(undefined);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const templates = listTemplates(orientationFilter ? { orientation: orientationFilter } : undefined);
+  const expandedTemplate = templates.find(t => t.id === expandedId);
+
+  useEffect(() => {
+    if (!expandedTemplate) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setExpandedId(null);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [expandedTemplate]);
 
   return (
     <div>
@@ -47,7 +93,12 @@ export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
                 {t.category} · {t.orientation}
               </span>
             </div>
-            <div className="relative flex justify-center overflow-hidden rounded-sm border border-line bg-stock/60 p-6">
+            <button
+              type="button"
+              onClick={() => setExpandedId(t.id)}
+              aria-label={`View a larger preview of the ${t.name} ${t.orientation} template`}
+              className="relative flex cursor-zoom-in justify-center overflow-hidden rounded-sm border border-line bg-stock/60 p-6 transition-colors hover:border-scan"
+            >
               {/* `zoom` (unlike transform: scale) shrinks the layout box along
                   with the visuals, so this container doesn't leave a gap of
                   empty space sized to the card's unscaled dimensions. */}
@@ -55,19 +106,9 @@ export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
                 className="pointer-events-none"
                 style={{ zoom: t.orientation === 'vertical' ? 0.55 : 0.4 }}
               >
-                <t.component
-                  data={{
-                    firstName: 'Juan',
-                    lastName: 'Dela Cruz',
-                    jobTitle: 'Sales Director',
-                    company: 'ABC Corporation',
-                    mobile: '+63 917 123 4567',
-                    email: 'juan@abc.com',
-                  }}
-                  style={{}}
-                />
+                <TemplatePreview template={t} />
               </div>
-            </div>
+            </button>
             <div className="flex items-center justify-between">
               <h3 className="font-display text-lg font-medium text-ink">{t.name}</h3>
               <button
@@ -80,6 +121,29 @@ export function TemplateGallery({ onSelect }: TemplateGalleryProps) {
           </div>
         ))}
       </div>
+      {expandedTemplate && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${expandedTemplate.name} ${expandedTemplate.orientation} template preview`}
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/70 p-6"
+          onClick={() => setExpandedId(null)}
+        >
+          <div className="relative" onClick={e => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setExpandedId(null)}
+              aria-label="Close preview"
+              className="absolute -top-10 right-0 font-mono text-xs uppercase tracking-[0.14em] text-white/80 transition-colors hover:text-white"
+            >
+              Close ✕
+            </button>
+            <div className="pointer-events-none overflow-hidden rounded-sm shadow-2xl">
+              <TemplatePreview template={expandedTemplate} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

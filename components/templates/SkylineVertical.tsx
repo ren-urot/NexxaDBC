@@ -1,5 +1,5 @@
 import type { TemplateProps } from '@/lib/templates/types';
-import { fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
+import { companyNameStyle, fontSizeClass, resolveAccentColor, whatsappUrl } from '@/lib/templates/style-utils';
 
 const SKYLINE_BUILDINGS = [
   { x: 0, w: 26, h: 60 },
@@ -86,12 +86,19 @@ export function SkylineVertical({ data, style }: TemplateProps) {
         className="absolute bottom-0 right-0 z-10 h-0 w-0"
         style={{ borderTop: '60px solid transparent', borderRight: '90px solid #1a2233' }}
       />
-      <div className="relative z-20 flex flex-1 flex-col justify-center gap-4 p-7">
+      {/* Top-anchored (not centered) so a full contact list can't drift down
+          into the QR reserved in the bottom-right corner (see
+          lib/templates/qr-spec.ts). */}
+      <div className="relative z-20 flex flex-1 flex-col justify-start gap-4 p-7">
         {data.logoUrl && (
           <img src={data.logoUrl} alt={data.company ? `${data.company} logo` : 'Company logo'} className="h-8" />
         )}
         <div>
-          {data.company && <p className="text-sm text-gray-500">{data.company}</p>}
+          {data.company && (
+            <p className="text-gray-500" style={companyNameStyle(1)}>
+              {data.company}
+            </p>
+          )}
           <h1 className={`${fontSizeClass(3, style.fontSizeStep)} font-bold tracking-tight text-gray-900`}>
             {data.firstName.toUpperCase()} <span className="font-normal">{data.lastName.toUpperCase()}</span>
           </h1>
