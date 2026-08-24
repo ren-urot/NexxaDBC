@@ -9,14 +9,16 @@ export function CorporateHorizontal({ data, style }: TemplateProps) {
       style={{ '--accent': accent, borderLeftColor: accent } as React.CSSProperties}
     >
       <div className="flex-1 flex flex-col justify-center">
-        {data.logoUrl && <img src={data.logoUrl} alt={`${data.company} logo`} className="h-10 mb-4" />}
+        {data.logoUrl && <img src={data.logoUrl} alt={data.company ? `${data.company} logo` : 'Company logo'} className="h-10 mb-4" />}
+        {data.company && (
+          <p className={`${fontSizeClass(2, style.fontSizeStep)} font-semibold`} style={{ color: accent }}>
+            {data.company}
+          </p>
+        )}
         <h1 className={`${fontSizeClass(4, style.fontSizeStep)} font-bold text-gray-900`}>
           {data.firstName} {data.lastName}
         </h1>
         <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-600`}>{data.jobTitle}</p>
-        <p className={`${fontSizeClass(2, style.fontSizeStep)} font-semibold`} style={{ color: accent }}>
-          {data.company}
-        </p>
       </div>
       <div className="flex-1 flex flex-col justify-center text-sm text-gray-700 space-y-1">
         <p>{data.mobile}</p>

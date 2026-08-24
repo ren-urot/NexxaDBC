@@ -24,11 +24,11 @@ interface RawPayload {
   fn: string;
   ln: string;
   jt: string;
-  co: string;
   mo: string;
   em: string;
   tp: string;
   or: string;
+  co?: string;
   ad?: string;
   ws?: string;
   lg?: string;
@@ -47,12 +47,12 @@ export function encodeCard(payload: EncodedCardPayload): string {
     fn: payload.data.firstName,
     ln: payload.data.lastName,
     jt: payload.data.jobTitle,
-    co: payload.data.company,
     mo: payload.data.mobile,
     em: payload.data.email,
     tp: payload.templateId,
     or: getTemplate(payload.templateId).orientation,
   };
+  if (payload.data.company) raw.co = payload.data.company;
   if (payload.data.address) raw.ad = payload.data.address;
   if (payload.data.website) raw.ws = payload.data.website;
   if (payload.data.logoUrl) raw.lg = payload.data.logoUrl;
@@ -121,14 +121,14 @@ function isRawPayload(value: unknown): value is RawPayload {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
   if (v.v !== SCHEMA_VERSION) return false;
-  const requiredStrings: (keyof RawPayload)[] = ['fn', 'ln', 'jt', 'co', 'mo', 'em', 'tp', 'or'];
+  const requiredStrings: (keyof RawPayload)[] = ['fn', 'ln', 'jt', 'mo', 'em', 'tp', 'or'];
   for (const key of requiredStrings) {
     if (typeof v[key] !== 'string' || (v[key] as string).length === 0) return false;
   }
   if (v.or !== 'vertical' && v.or !== 'horizontal') return false;
 
   // Validate optional string fields
-  const optionalStringFields: (keyof RawPayload)[] = ['ad', 'ws', 'lg', 'fb', 'li', 'ig', 'wa', 'ms', 'ac'];
+  const optionalStringFields: (keyof RawPayload)[] = ['co', 'ad', 'ws', 'lg', 'fb', 'li', 'ig', 'wa', 'ms', 'ac'];
   for (const key of optionalStringFields) {
     if (key in v && typeof v[key] !== 'string') return false;
   }
@@ -171,7 +171,7 @@ export function cardPayloadFromDraft(draft: {
       firstName: draft.firstName ?? '',
       lastName: draft.lastName ?? '',
       jobTitle: draft.jobTitle ?? '',
-      company: draft.company ?? '',
+      company: draft.company ?? undefined,
       mobile: draft.mobile ?? '',
       email: draft.email ?? '',
       address: draft.address ?? undefined,

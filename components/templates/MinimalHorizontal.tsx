@@ -6,11 +6,13 @@ export function MinimalHorizontal({ data, style }: TemplateProps) {
   return (
     <div className="w-[560px] h-[320px] bg-white p-8 flex flex-row items-center gap-8">
       <div className="flex-1">
+        {data.company && (
+          <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-500`}>{data.company}</p>
+        )}
         <h1 className={`${fontSizeClass(4, style.fontSizeStep)} font-light text-gray-900`}>
           {data.firstName} {data.lastName}
         </h1>
         <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-500`}>{data.jobTitle}</p>
-        <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-500`}>{data.company}</p>
       </div>
       <div data-testid="accent-divider" className="w-0.5 self-stretch" style={{ backgroundColor: accent }} />
       <div className="flex-1 text-sm text-gray-700 space-y-1">

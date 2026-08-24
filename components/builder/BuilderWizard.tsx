@@ -67,7 +67,7 @@ function findTemplate(id: string): TemplateDefinition | null {
   return templates.find(t => t.id === id) ?? null;
 }
 
-const REQUIRED_FIELD_KEYS = ['firstName', 'lastName', 'jobTitle', 'company', 'mobile'] as const;
+const REQUIRED_FIELD_KEYS = ['firstName', 'lastName', 'jobTitle', 'mobile'] as const;
 
 /**
  * Required fields correctly reject '' at the schema level — you can't submit
@@ -89,6 +89,51 @@ function stripEmptyRequiredFields(patch: PatchBody): PatchBody {
     if (next[key] === '') delete next[key];
   }
   return next as PatchBody;
+}
+
+/**
+ * Each field in cardDataSchema fails validation for exactly one reason (a
+ * required field left empty, or a URL/email field that isn't a valid one),
+ * so a fixed per-field message is always accurate — no need to parse Zod's
+ * own wording. Without this, submit's 422 handler showed "Please fill in
+ * all required fields" even when every required field WAS filled and the
+ * real problem was, say, a Facebook link missing "https://": a filled-in
+ * optional field with a bad format looks identical, from the generic
+ * message, to a blank required one.
+ */
+const SUBMIT_FIELD_ERROR_MESSAGES: Record<string, string> = {
+  firstName: 'First name is required.',
+  lastName: 'Last name is required.',
+  jobTitle: 'Job title is required.',
+  mobile: 'Please enter a valid mobile number.',
+  email: 'Please enter a valid email address.',
+  company: 'Company name is too long.',
+  address: 'Address is too long.',
+  website: 'Website: please enter a valid URL (starting with https://).',
+  facebook: 'Facebook: please enter a valid URL (starting with https://).',
+  linkedin: 'LinkedIn: please enter a valid URL (starting with https://).',
+  instagram: 'Instagram: please enter a valid URL (starting with https://).',
+  whatsapp: 'WhatsApp number is too long.',
+  messenger: 'Messenger: please enter a valid URL (starting with https://).',
+  logoUrl: 'There was a problem with the uploaded logo — try uploading it again.',
+};
+
+async function extractSubmitError(res: Response): Promise<string> {
+  const fallback = "We couldn't submit your card. Please try again.";
+  let body: unknown;
+  try {
+    body = await res.json();
+  } catch {
+    return fallback;
+  }
+  const fieldErrors = (body as { error?: { fieldErrors?: Record<string, unknown> } } | null)?.error?.fieldErrors;
+  if (fieldErrors) {
+    for (const field of Object.keys(fieldErrors)) {
+      const message = SUBMIT_FIELD_ERROR_MESSAGES[field];
+      if (message) return message;
+    }
+  }
+  return fallback;
 }
 
 export function BuilderWizard({ draftId }: { draftId: string }) {
@@ -135,6 +180,17 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
     };
   }, [draftId]);
 
+  // A draft reached here already submitted — most commonly a reload or
+  // back-navigation to /builder/{draftId} after the normal submit flow
+  // already moved on to the /submitted step. Land back on that same step
+  // (which starts checkout) instead of a dead-end "already submitted"
+  // message with no way to continue toward payment.
+  useEffect(() => {
+    if (draft?.status === 'submitted') {
+      router.push(`/builder/${draftId}/submitted`);
+    }
+  }, [draft?.status, draftId, router]);
+
   useEffect(
     () => () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -171,6 +227,17 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
       // arrives — don't let it resurrect a stale error over fresher state.
       if (seq === seqRef.current) {
         setError("We couldn't save your latest changes. Please check the fields above.");
+      }
+      // A 4xx means the server rejected this exact payload as invalid — not a
+      // transient failure, so retrying it verbatim would just 400 again on
+      // every later flush (the same mechanical bug stripEmptyRequiredFields
+      // works around for one specific field). Drop it from the pending set;
+      // if the user fixes the offending field, that keystroke queues a fresh,
+      // valid patch on its own. A 5xx or network failure is transient, so
+      // that snapshot stays queued for the next flush to retry.
+      if (res.status >= 400 && res.status < 500 && seq === seqRef.current) {
+        pendingRef.current = dropConfirmed(pendingRef.current, snapshot);
+        setPending(pendingRef.current);
       }
       return false;
     }
@@ -231,7 +298,7 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
       if (!res.ok) {
         setError(
           res.status === 422
-            ? 'Please fill in all required fields before continuing.'
+            ? await extractSubmitError(res)
             : "We couldn't submit your card. Please try again."
         );
         return;
@@ -262,11 +329,7 @@ export function BuilderWizard({ draftId }: { draftId: string }) {
 
   if (!draft) return <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">Loading…</p>;
   if (draft.status === 'submitted')
-    return (
-      <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">
-        Your card has been submitted.
-      </p>
-    );
+    return <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink-soft">Loading…</p>;
 
   const template = findTemplate(draft.templateId);
   if (!template) {

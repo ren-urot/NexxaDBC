@@ -15,7 +15,7 @@ interface InfoFormProps {
   data: Partial<CardData>;
   /** Called on every keystroke with the changed field. The parent debounces persistence. */
   onChange: (patch: Partial<CardData>) => void;
-  onLogoUpload: (file: File) => void;
+  onLogoUpload: (file: File) => Promise<void>;
   /** Whether the selected template renders a logo (template.customizable.logo). */
   allowLogo?: boolean;
 }
@@ -45,6 +45,11 @@ const microLabelClass = 'font-mono text-[10px] uppercase tracking-[0.16em] text-
 
 export function InfoForm({ data, onChange, onLogoUpload, allowLogo = true }: InfoFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // The native file input always resets to "No file chosen" after a pick,
+  // regardless of whether the upload behind it succeeded — so it's the only
+  // spot in this form where the visible state doesn't reflect the outcome
+  // unless something else says so.
+  const [logoUploading, setLogoUploading] = useState(false);
   // Local, always-optimistic copy of the field values: typing is never blocked
   // on (or reverted by) a network round-trip.
   const [values, setValues] = useState<Partial<CardData>>(data);
@@ -107,7 +112,6 @@ export function InfoForm({ data, onChange, onLogoUpload, allowLogo = true }: Inf
           {renderField('First name', 'firstName')}
           {renderField('Last name', 'lastName')}
           {renderField('Job title', 'jobTitle')}
-          {renderField('Company', 'company')}
           {renderField('Mobile number', 'mobile')}
           {renderField('Email', 'email')}
         </div>
@@ -118,6 +122,7 @@ export function InfoForm({ data, onChange, onLogoUpload, allowLogo = true }: Inf
           Optional details
         </legend>
         <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+          {renderField('Company', 'company')}
           {renderField('Address', 'address')}
           {renderField('Website', 'website')}
           {allowLogo && (
@@ -130,9 +135,18 @@ export function InfoForm({ data, onChange, onLogoUpload, allowLogo = true }: Inf
                 className="mt-1.5 block w-full text-sm text-ink-soft file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1.5 file:font-mono file:text-[11px] file:uppercase file:tracking-[0.1em] file:text-paper"
                 onChange={e => {
                   const file = e.target.files?.[0];
-                  if (file) onLogoUpload(file);
+                  if (!file) return;
+                  setLogoUploading(true);
+                  onLogoUpload(file).finally(() => setLogoUploading(false));
                 }}
               />
+              {logoUploading ? (
+                <p className="mt-1.5 text-xs text-ink-soft">Uploading…</p>
+              ) : (
+                data.logoUrl && (
+                  <p className="mt-1.5 text-xs text-ink-soft">✓ Logo uploaded — choose a file to replace it</p>
+                )
+              )}
             </label>
           )}
           {renderField('Facebook', 'facebook')}

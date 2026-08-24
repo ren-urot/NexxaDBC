@@ -13,14 +13,16 @@ export function ModernHorizontal({ data, style }: TemplateProps) {
         style={{ background: accent, opacity: 0.25 }}
       />
       <div className="flex-1 relative">
-        {data.logoUrl && <img src={data.logoUrl} alt={`${data.company} logo`} className="h-10 mb-4" />}
+        {data.logoUrl && <img src={data.logoUrl} alt={data.company ? `${data.company} logo` : 'Company logo'} className="h-10 mb-4" />}
+        {data.company && (
+          <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-300`}>{data.company}</p>
+        )}
         <h1 className={`${fontSizeClass(5, style.fontSizeStep)} font-black`}>
           {data.firstName} {data.lastName}
         </h1>
         <p className={`${fontSizeClass(2, style.fontSizeStep)} font-semibold`} style={{ color: accent }}>
           {data.jobTitle}
         </p>
-        <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-300`}>{data.company}</p>
       </div>
       <div className="flex-1 flex flex-col justify-center text-sm text-gray-300 space-y-1 relative">
         <p>{data.mobile}</p>

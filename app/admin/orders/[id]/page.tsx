@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from 'react';
 import { encodeCard, cardPayloadFromDraft, hasCardContent, MAX_ENCODED_CARD_LENGTH } from '@/lib/card-encoding';
 import { CardInstallQR } from '@/components/shared/CardInstallQR';
+import { LocalhostWarning } from '@/components/shared/LocalhostWarning';
 import type { StyleOverrides } from '@/lib/templates/types';
 
 interface OrderDraft {
@@ -143,7 +144,8 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
       )}
 
       {qrValue && (
-        <div className="mt-8">
+        <div className="mt-8 space-y-4">
+          <LocalhostWarning />
           <CardInstallQR value={qrValue} />
         </div>
       )}

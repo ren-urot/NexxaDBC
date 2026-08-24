@@ -12,14 +12,14 @@ export function CreativeHorizontal({ data, style }: TemplateProps) {
         className="w-[220px] h-full flex flex-col justify-center items-center p-6 text-white"
         style={{ background: accent, clipPath: 'polygon(0 0, 100% 0, 80% 100%, 0% 100%)' }}
       >
-        {data.logoUrl && <img src={data.logoUrl} alt={`${data.company} logo`} className="h-10 mb-3" />}
+        {data.logoUrl && <img src={data.logoUrl} alt={data.company ? `${data.company} logo` : 'Company logo'} className="h-10 mb-3" />}
         <h1 className={`${fontSizeClass(3, style.fontSizeStep)} font-bold text-center`}>
           {data.firstName} {data.lastName}
         </h1>
         <p className={`${fontSizeClass(1, style.fontSizeStep)} text-center`}>{data.jobTitle}</p>
       </div>
       <div className="flex-1 flex flex-col justify-center p-6 text-sm text-gray-700 space-y-1">
-        <p className="font-semibold text-gray-900">{data.company}</p>
+        {data.company && <p className="font-semibold text-gray-900">{data.company}</p>}
         <p>{data.mobile}</p>
         <p>{data.email}</p>
         {data.website && <p>{data.website}</p>}

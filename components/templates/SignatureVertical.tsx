@@ -29,9 +29,15 @@ export function SignatureVertical({ data, style }: TemplateProps) {
     >
       <div className="flex flex-col items-center justify-center gap-1 px-6 py-8 text-center" style={{ background: accent }}>
         {data.logoUrl ? (
-          <img src={data.logoUrl} alt={`${data.company} logo`} className="h-10 max-w-[200px] object-contain" />
+          <img
+            src={data.logoUrl}
+            alt={data.company ? `${data.company} logo` : 'Company logo'}
+            className="h-10 max-w-[200px] object-contain"
+          />
         ) : (
-          <p className={`${fontSizeClass(3, style.fontSizeStep)} font-bold text-white`}>{data.company}</p>
+          data.company && (
+            <p className={`${fontSizeClass(3, style.fontSizeStep)} font-bold text-white`}>{data.company}</p>
+          )
         )}
       </div>
       <div className="h-1.5 w-full" style={{ background: GRADIENT }} />

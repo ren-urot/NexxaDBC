@@ -29,9 +29,15 @@ export function SignatureHorizontal({ data, style }: TemplateProps) {
     >
       <div className="flex items-center px-6 py-5" style={{ background: accent }}>
         {data.logoUrl ? (
-          <img src={data.logoUrl} alt={`${data.company} logo`} className="h-9 max-w-[220px] object-contain" />
+          <img
+            src={data.logoUrl}
+            alt={data.company ? `${data.company} logo` : 'Company logo'}
+            className="h-9 max-w-[220px] object-contain"
+          />
         ) : (
-          <p className={`${fontSizeClass(3, style.fontSizeStep)} font-bold text-white`}>{data.company}</p>
+          data.company && (
+            <p className={`${fontSizeClass(3, style.fontSizeStep)} font-bold text-white`}>{data.company}</p>
+          )
         )}
       </div>
       <div className="h-1.5 w-full" style={{ background: GRADIENT }} />

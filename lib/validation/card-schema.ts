@@ -9,6 +9,18 @@ import { z } from 'zod';
  */
 const optionalUrl = z.union([z.literal(''), z.string().url()]).optional();
 
+/**
+ * logoUrl is never user-typed — it's whatever the upload endpoint stored it
+ * as (lib/blob.ts's uploadLogo). In every deployed environment that's an
+ * absolute Vercel Blob URL, but local dev without BLOB_READ_WRITE_TOKEN
+ * falls back to serving the file from public/uploads and returns a
+ * root-relative path instead. `optionalUrl`'s strict `.url()` check rejects
+ * that path, so a logo uploaded in local dev could never be submitted.
+ */
+const optionalLogoUrl = z
+  .union([z.literal(''), z.string().url(), z.string().regex(/^\/\S+$/)])
+  .optional();
+
 /** Same reasoning as `optionalUrl`, for the one `.email()` field. */
 const optionalEmail = z.union([z.literal(''), z.string().email()]).optional();
 
@@ -16,12 +28,12 @@ export const cardDataSchema = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
   jobTitle: z.string().min(1).max(150),
-  company: z.string().min(1).max(150),
+  company: z.string().max(150).optional(),
   mobile: z.string().min(7).max(30),
   email: z.string().email(),
   address: z.string().max(500).optional(),
   website: optionalUrl,
-  logoUrl: optionalUrl,
+  logoUrl: optionalLogoUrl,
   facebook: optionalUrl,
   linkedin: optionalUrl,
   instagram: optionalUrl,

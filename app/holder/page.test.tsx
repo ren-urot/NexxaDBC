@@ -1,44 +1,118 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 vi.mock('@/lib/holder-storage', () => ({
-  getCard: vi.fn(),
+  getCards: vi.fn(),
 }));
 
-import { getCard } from '@/lib/holder-storage';
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(),
+}));
+
+import { getCards } from '@/lib/holder-storage';
+import { useRouter } from 'next/navigation';
 import HolderPage from './page';
 
-beforeEach(() => vi.clearAllMocks());
+const juan = {
+  id: 'card-1',
+  data: {
+    firstName: 'Juan',
+    lastName: 'Dela Cruz',
+    jobTitle: 'Sales Director',
+    company: 'ABC Corporation',
+    mobile: '+639171234567',
+    email: 'juan@abc.com',
+  },
+  style: {},
+  templateId: 'corporate-vertical',
+  savedAt: '2026-01-01T00:00:00.000Z',
+};
 
-describe('HolderPage', () => {
-  it('shows an empty state when no card is saved', async () => {
-    vi.mocked(getCard).mockResolvedValue(null);
+const maria = {
+  id: 'card-2',
+  data: {
+    firstName: 'Maria',
+    lastName: 'Santos',
+    jobTitle: 'CEO',
+    company: 'XYZ Trading',
+    mobile: '+639171234568',
+    email: 'maria@xyz.com',
+  },
+  style: {},
+  templateId: 'modern-horizontal',
+  savedAt: '2026-01-02T00:00:00.000Z',
+};
+
+const replace = vi.fn();
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(useRouter).mockReturnValue({ replace } as never);
+});
+
+describe('HolderPage (My Card Holder list)', () => {
+  it('redirects to the homepage when no cards are saved — a holder only exists once a DBC has been received', async () => {
+    vi.mocked(getCards).mockResolvedValue([]);
     render(<HolderPage />);
-    expect(await screen.findByText(/no card yet/i)).toBeInTheDocument();
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
+    expect(screen.queryByText(/my card holder/i)).not.toBeInTheDocument();
   });
 
-  it('renders the saved card and its actions', async () => {
-    vi.mocked(getCard).mockResolvedValue({
-      data: {
-        firstName: 'Juan',
-        lastName: 'Dela Cruz',
-        jobTitle: 'Sales Director',
-        company: 'ABC Corporation',
-        mobile: '+639171234567',
-        email: 'juan@abc.com',
-      },
-      style: {},
-      templateId: 'corporate-vertical',
-      savedAt: new Date().toISOString(),
-    });
+  it('redirects to the homepage when loading cards fails', async () => {
+    vi.mocked(getCards).mockRejectedValue(new Error('storage error'));
     render(<HolderPage />);
-    expect(await screen.findByText('Juan Dela Cruz')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /save to contacts/i })).toBeInTheDocument();
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/'));
   });
 
-  it('falls back to the empty state when loading the card fails', async () => {
-    vi.mocked(getCard).mockRejectedValue(new Error('storage error'));
+  it('shows the closed holder first, opening into the card list on tap', async () => {
+    vi.mocked(getCards).mockResolvedValue([maria, juan]);
     render(<HolderPage />);
-    expect(await screen.findByText(/no card yet/i)).toBeInTheDocument();
+    const openButton = await screen.findByRole('button', { name: /open card holder/i });
+    expect(screen.queryByLabelText('Search cards')).not.toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
+
+    await userEvent.click(openButton);
+    expect(await screen.findByLabelText('Search cards')).toBeInTheDocument();
+  });
+
+  it('collapses back to the closed holder when the back arrow is tapped', async () => {
+    vi.mocked(getCards).mockResolvedValue([maria, juan]);
+    render(<HolderPage />);
+    await userEvent.click(await screen.findByRole('button', { name: /open card holder/i }));
+    expect(await screen.findByLabelText('Search cards')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /close card holder/i }));
+    expect(await screen.findByRole('button', { name: /open card holder/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Search cards')).not.toBeInTheDocument();
+  });
+
+  it('lists every saved card, linking to its detail page', async () => {
+    vi.mocked(getCards).mockResolvedValue([maria, juan]);
+    render(<HolderPage />);
+    await userEvent.click(await screen.findByRole('button', { name: /open card holder/i }));
+
+    const juanLink = await screen.findByRole('link', { name: /juan dela cruz/i });
+    expect(juanLink).toHaveAttribute('href', '/holder/card-1');
+    expect(screen.getByText('Sales Director')).toBeInTheDocument();
+    const mariaLink = screen.getByRole('link', { name: /maria santos/i });
+    expect(mariaLink).toHaveAttribute('href', '/holder/card-2');
+  });
+
+  it('filters cards by name or company as the user types', async () => {
+    vi.mocked(getCards).mockResolvedValue([maria, juan]);
+    render(<HolderPage />);
+    await userEvent.click(await screen.findByRole('button', { name: /open card holder/i }));
+    await screen.findByRole('link', { name: /juan dela cruz/i });
+
+    await userEvent.type(screen.getByLabelText('Search cards'), 'xyz');
+    expect(screen.queryByRole('link', { name: /juan dela cruz/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /maria santos/i })).toBeInTheDocument();
+  });
+
+  it('links the Scan Card button to the in-app scanner', async () => {
+    vi.mocked(getCards).mockResolvedValue([maria, juan]);
+    render(<HolderPage />);
+    expect(await screen.findByRole('link', { name: /scan card/i })).toHaveAttribute('href', '/holder/scan');
   });
 });

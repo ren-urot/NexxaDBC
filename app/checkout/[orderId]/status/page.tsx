@@ -7,6 +7,7 @@ import { PaymentQR } from '@/components/checkout/PaymentQR';
 import { PaymentForm } from '@/components/checkout/PaymentForm';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+import { extractErrorMessage } from '@/lib/api-error';
 
 interface OrderState {
   id: string;
@@ -61,6 +62,29 @@ export default function OrderStatusPage({ params }: { params: Promise<{ orderId:
     })();
   }, [orderId]);
 
+  // While an order is awaiting an admin decision, poll for the outcome so
+  // the customer sees "Approved" (and their QR) the moment it happens,
+  // instead of the page being stuck on "Under review" until they manually
+  // reload — the initial load() above only ever fetches once.
+  useEffect(() => {
+    if (order?.status !== 'submitted') return;
+    let cancelled = false;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/orders/${orderId}`);
+        if (!res.ok || cancelled) return;
+        setOrder(await res.json());
+      } catch {
+        // A transient network hiccup shouldn't stop polling — the next
+        // tick tries again.
+      }
+    }, 4000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [order?.status, orderId]);
+
   async function handleResubmit({ reference, file }: { reference: string; file: File }) {
     if (!method) return;
     setSubmitting(true);
@@ -72,7 +96,7 @@ export default function OrderStatusPage({ params }: { params: Promise<{ orderId:
       form.set('file', file);
       const res = await fetch(`/api/orders/${orderId}/payment`, { method: 'POST', body: form });
       if (!res.ok) {
-        setError("We couldn't submit your payment. Please try again.");
+        setError(await extractErrorMessage(res, "We couldn't submit your payment. Please try again."));
         setSubmitting(false);
         return;
       }

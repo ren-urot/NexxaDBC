@@ -5,11 +5,13 @@ export function MinimalVertical({ data, style }: TemplateProps) {
   const accent = resolveAccentColor(style, '#000000');
   return (
     <div className="w-[320px] h-[560px] bg-white p-8 flex flex-col justify-center">
+      {data.company && (
+        <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-500`}>{data.company}</p>
+      )}
       <h1 className={`${fontSizeClass(4, style.fontSizeStep)} font-light text-gray-900`}>
         {data.firstName} {data.lastName}
       </h1>
       <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-500`}>{data.jobTitle}</p>
-      <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-500`}>{data.company}</p>
       <div data-testid="accent-divider" className="h-0.5 w-12 my-6" style={{ backgroundColor: accent }} />
       <div className="text-sm text-gray-700 space-y-1">
         <p>{data.mobile}</p>

@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       firstName: draft.firstName,
       lastName: draft.lastName,
       jobTitle: draft.jobTitle,
-      company: draft.company,
+      company: draft.company ?? undefined,
       mobile: draft.mobile,
       email: draft.email,
       address: draft.address ?? undefined,

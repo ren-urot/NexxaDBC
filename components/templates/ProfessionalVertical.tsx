@@ -8,14 +8,16 @@ export function ProfessionalVertical({ data, style }: TemplateProps) {
       className="flex flex-col items-center text-center w-[320px] h-[560px] rounded-2xl bg-slate-50 p-6 shadow-lg"
       style={{ '--accent': accent } as React.CSSProperties}
     >
-      {data.logoUrl && <img src={data.logoUrl} alt={`${data.company} logo`} className="h-10 mb-4" />}
-      <p className={`${fontSizeClass(2, style.fontSizeStep)} font-semibold uppercase tracking-wide`} style={{ color: accent }}>
-        {data.jobTitle}
-      </p>
+      {data.logoUrl && <img src={data.logoUrl} alt={data.company ? `${data.company} logo` : 'Company logo'} className="h-10 mb-4" />}
+      {data.company && (
+        <p className={`${fontSizeClass(2, style.fontSizeStep)} font-semibold uppercase tracking-wide`} style={{ color: accent }}>
+          {data.company}
+        </p>
+      )}
       <h1 className={`${fontSizeClass(3, style.fontSizeStep)} font-medium text-slate-900 mt-1`}>
         {data.firstName} {data.lastName}
       </h1>
-      <p className={`${fontSizeClass(2, style.fontSizeStep)} text-slate-600 mt-1`}>{data.company}</p>
+      <p className={`${fontSizeClass(2, style.fontSizeStep)} text-slate-600 mt-1`}>{data.jobTitle}</p>
       <div className="mt-6 text-sm text-slate-700 space-y-1">
         <p>{data.mobile}</p>
         <p>{data.email}</p>

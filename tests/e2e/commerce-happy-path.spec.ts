@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('submit a draft, pay, get approved, see the provisioning QR', async ({ page }) => {
+test('submit a draft, pay, get approved, see the provisioning QR', async ({ page, context }) => {
   // Builder: create and submit a draft (mirrors builder-happy-path.spec.ts)
   await page.goto('/templates');
   await page.getByRole('button', { name: 'Select' }).first().click();
@@ -34,21 +34,25 @@ test('submit a draft, pay, get approved, see the provisioning QR', async ({ page
   await page.waitForURL(/\/status$/);
   await expect(page.getByText(/under review/i)).toBeVisible();
 
-  // Admin: sign in, approve the order
-  await page.goto('/admin/login');
-  await page.getByLabel('Password').fill(process.env.ADMIN_PASSWORD ?? 'demo-admin-password');
-  await page.getByRole('button', { name: /sign in/i }).click();
-  await page.waitForURL(/\/admin\/orders$/);
+  // Admin: sign in and approve the order from a *separate* tab, leaving the
+  // customer's status page (`page`) open and untouched throughout. The
+  // status page polls while "under review" — it must pick up the approval
+  // and reveal the QR on its own, with no reload/navigation on `page`.
+  const admin = await context.newPage();
+  await admin.goto('/admin/login');
+  await admin.getByLabel('Password').fill(process.env.ADMIN_PASSWORD ?? 'demo-admin-password');
+  await admin.getByRole('button', { name: /sign in/i }).click();
+  await admin.waitForURL(/\/admin\/orders$/);
 
-  await page.goto(`/admin/orders/${orderId}`);
-  await expect(page.getByText('Juan Dela Cruz')).toBeVisible();
-  await page.getByRole('button', { name: /^approve$/i }).click();
+  await admin.goto(`/admin/orders/${orderId}`);
+  await expect(admin.getByText('Juan Dela Cruz')).toBeVisible();
+  await admin.getByRole('button', { name: /^approve$/i }).click();
+  await expect(admin.getByText(/order · approved/i)).toBeVisible();
+  await admin.close();
 
-  await expect(page.getByText(/order · approved/i)).toBeVisible();
-
-  // Back on the customer side: the status page now shows the provisioning QR
-  await page.goto(`/checkout/${orderId}/status`);
-  await expect(page.getByText(/scan to add to your phone/i)).toBeVisible();
+  // Back on the still-open customer tab: no reload, just the poll picking
+  // up the outcome and showing the provisioning QR.
+  await expect(page.getByText(/scan to add to your phone/i)).toBeVisible({ timeout: 10000 });
 
   // Provisioning + Holder: extract the QR's encoded value (Playwright can't
   // decode a rendered QR image, so the component carries it in a data

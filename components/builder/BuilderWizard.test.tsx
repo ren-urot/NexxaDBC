@@ -5,8 +5,9 @@ import { setupServer } from 'msw/node';
 import { http, HttpResponse } from 'msw';
 import { BuilderWizard } from './BuilderWizard';
 
+const pushMock = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: pushMock }),
 }));
 
 const draft = {
@@ -28,13 +29,28 @@ const server = setupServer(
 );
 
 beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  pushMock.mockClear();
+});
 afterAll(() => server.close());
 
 describe('BuilderWizard', () => {
   it('loads the draft and renders the live preview', async () => {
     render(<BuilderWizard draftId="draft-1" />);
     await waitFor(() => expect(screen.getByText(/Job Title/)).toBeInTheDocument());
+  });
+
+  it('redirects to the submitted step when the draft loads already submitted', async () => {
+    // Regression: reloading /builder/{draftId} (e.g. via back-navigation)
+    // after the normal submit flow already moved on to /submitted used to
+    // render a dead-end "Your card has been submitted." message with no way
+    // to continue toward payment.
+    server.use(
+      http.get('/api/drafts/draft-1', () => HttpResponse.json({ ...draft, status: 'submitted' }))
+    );
+    render(<BuilderWizard draftId="draft-1" />);
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/builder/draft-1/submitted'));
   });
 
   it('patches the draft when a field changes', async () => {
@@ -44,11 +60,30 @@ describe('BuilderWizard', () => {
     await waitFor(() => expect(screen.getByText('Juan Last Name')).toBeInTheDocument());
   });
 
-  it('submits the draft and shows a confirmation state', async () => {
+  it('submits the draft and redirects to the submitted step', async () => {
     render(<BuilderWizard draftId="draft-1" />);
     await waitFor(() => screen.getByRole('button', { name: /continue/i }));
     await userEvent.click(screen.getByRole('button', { name: /continue/i }));
-    await waitFor(() => expect(screen.getByText(/submitted/i)).toBeInTheDocument());
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/builder/draft-1/submitted'));
+  });
+
+  it('shows a field-specific error on a 422, not the generic "fill in required fields" message', async () => {
+    // Regression: every 422 showed "Please fill in all required fields
+    // before continuing" verbatim, even when the real problem was a filled-in
+    // optional field with a bad format (e.g. a Facebook URL missing
+    // "https://") — indistinguishable, from that message, from an actually
+    // blank required field.
+    server.use(
+      http.post('/api/drafts/draft-1/submit', () =>
+        HttpResponse.json({ error: { formErrors: [], fieldErrors: { facebook: ['Invalid URL'] } } }, { status: 422 })
+      )
+    );
+    render(<BuilderWizard draftId="draft-1" />);
+    await waitFor(() => screen.getByRole('button', { name: /continue/i }));
+    await userEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/facebook.*valid url/i);
+    expect(screen.queryByText(/fill in all required fields/i)).not.toBeInTheDocument();
   });
 
   it('does not corrupt draft state or crash when a PATCH fails validation', async () => {
@@ -150,7 +185,7 @@ describe('BuilderWizard', () => {
     await waitFor(() => expect(website.value).toBe(''));
 
     await userEvent.click(screen.getByRole('button', { name: /continue/i }));
-    await waitFor(() => expect(screen.getByText(/submitted/i)).toBeInTheDocument());
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/builder/draft-1/submitted'));
   });
 
   it('never sends a PATCH for a required field cleared to empty, and resumes persisting once retyped', async () => {
@@ -199,7 +234,7 @@ describe('BuilderWizard', () => {
 
     // And Continue isn't wedged by any leftover failed-patch state.
     await userEvent.click(screen.getByRole('button', { name: /continue/i }));
-    await waitFor(() => expect(screen.getByText(/submitted/i)).toBeInTheDocument());
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/builder/draft-1/submitted'));
   }, 10000);
 
   it('hides the logo upload field for a template that never renders a logo', async () => {

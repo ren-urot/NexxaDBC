@@ -11,6 +11,8 @@ import { ExecutiveVertical } from '@/components/templates/ExecutiveVertical';
 import { CreativeHorizontal } from '@/components/templates/CreativeHorizontal';
 import { SignatureVertical } from '@/components/templates/SignatureVertical';
 import { SignatureHorizontal } from '@/components/templates/SignatureHorizontal';
+import { SkylineVertical } from '@/components/templates/SkylineVertical';
+import { SkylineHorizontal } from '@/components/templates/SkylineHorizontal';
 
 export const templates: TemplateDefinition[] = [];
 
@@ -125,6 +127,25 @@ templates.push(
     orientation: 'horizontal',
     customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
     component: SignatureHorizontal,
+  }
+);
+
+templates.push(
+  {
+    id: 'skyline-vertical',
+    name: 'Skyline',
+    category: 'skyline',
+    orientation: 'vertical',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
+    component: SkylineVertical,
+  },
+  {
+    id: 'skyline-horizontal',
+    name: 'Skyline',
+    category: 'skyline',
+    orientation: 'horizontal',
+    customizable: { accentColor: true, fontSizeStep: { min: -1, max: 1 }, logo: true },
+    component: SkylineHorizontal,
   }
 );
 

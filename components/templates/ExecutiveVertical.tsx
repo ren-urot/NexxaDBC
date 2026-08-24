@@ -9,14 +9,16 @@ export function ExecutiveVertical({ data, style }: TemplateProps) {
       style={{ '--accent': accent } as React.CSSProperties}
     >
       <div>
-        {data.logoUrl && <img src={data.logoUrl} alt={`${data.company} logo`} className="h-10 mb-6" />}
-        <p className={`${fontSizeClass(2, style.fontSizeStep)} font-semibold uppercase tracking-widest`} style={{ color: accent }}>
-          {data.jobTitle}
-        </p>
+        {data.logoUrl && <img src={data.logoUrl} alt={data.company ? `${data.company} logo` : 'Company logo'} className="h-10 mb-6" />}
+        {data.company && (
+          <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-400 font-serif`}>{data.company}</p>
+        )}
         <h1 className={`${fontSizeClass(4, style.fontSizeStep)} font-serif mt-2`}>
           {data.firstName} {data.lastName}
         </h1>
-        <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-400 font-serif`}>{data.company}</p>
+        <p className={`${fontSizeClass(2, style.fontSizeStep)} font-semibold uppercase tracking-widest`} style={{ color: accent }}>
+          {data.jobTitle}
+        </p>
       </div>
       <div className="text-sm text-gray-300 space-y-1">
         <p>{data.mobile}</p>

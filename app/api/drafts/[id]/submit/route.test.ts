@@ -49,6 +49,24 @@ describe('POST /api/drafts/:id/submit', () => {
     expect(body.status).toBe('submitted');
   });
 
+  it('submits a draft with company left blank — company is optional', async () => {
+    const draft = await createDraft({
+      sessionId: SESSION,
+      templateId: 'corporate-vertical',
+      orientation: 'vertical',
+    });
+    await updateDraft(draft.id, {
+      firstName: 'Juan',
+      lastName: 'Dela Cruz',
+      jobTitle: 'Sales Director',
+      mobile: '+639171234567',
+      email: 'juan@abc.com',
+    });
+
+    const res = await POST(submitRequest(), { params: Promise.resolve({ id: draft.id }) });
+    expect(res.status).toBe(200);
+  });
+
   it('rejects submission when a required field is missing', async () => {
     const draft = await createDraft({
       sessionId: SESSION,

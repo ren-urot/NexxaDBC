@@ -2,6 +2,7 @@
 
 import { encodeCard, cardPayloadFromDraft, hasCardContent, MAX_ENCODED_CARD_LENGTH } from '@/lib/card-encoding';
 import { CardInstallQR } from '@/components/shared/CardInstallQR';
+import { LocalhostWarning } from '@/components/shared/LocalhostWarning';
 import type { StyleOverrides } from '@/lib/templates/types';
 
 const STATUS_COPY: Record<string, { label: string; body: string }> = {
@@ -68,7 +69,12 @@ export function OrderStatus({ status, adminNotes, draft, origin }: OrderStatusPr
           {adminNotes}
         </p>
       )}
-      {qrValue && <CardInstallQR value={qrValue} />}
+      {qrValue && (
+        <>
+          <LocalhostWarning />
+          <CardInstallQR value={qrValue} />
+        </>
+      )}
       {qrTooLarge && (
         <p role="alert" className="rounded-sm border border-ink/20 bg-stock px-4 py-3 text-sm text-ink">
           Your card&apos;s details are too long to fit in a scannable code. Contact support to shorten your address

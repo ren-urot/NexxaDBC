@@ -106,7 +106,7 @@ const HOW_IT_WORKS = [
     step: '1',
     icon: LayoutTemplateIcon,
     title: 'Choose your template',
-    body: 'Pick from twelve professionally designed layouts across six styles: corporate, minimal, modern, executive, creative, signature.',
+    body: 'Pick from fourteen professionally designed layouts across seven styles: corporate, minimal, modern, executive, creative, signature, skyline.',
   },
   {
     step: '2',
@@ -242,7 +242,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-6xl px-6 pb-16 pt-8 sm:px-10">
+        <section className="relative z-10 mx-auto w-full max-w-6xl px-6 pb-16 pt-8 sm:px-10" style={{ marginTop: '-60px' }}>
           <div className="grid gap-8 rounded-3xl bg-white p-8 shadow-[0_2px_8px_rgba(23,23,23,0.05)] sm:grid-cols-4 sm:p-10">
             {TRUST_STRIP.map(item => (
               <div key={item.title} className="flex items-start gap-3">
@@ -258,7 +258,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="how-it-works" className="mx-auto w-full max-w-6xl px-6 py-20 sm:px-10">
+        <section id="how-it-works" className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-6 py-20 sm:px-10">
           <div className="text-center">
             <span className="inline-flex w-fit items-center rounded-full bg-tint px-4 py-1.5 text-xs font-semibold text-scan">
               How It Works
@@ -283,7 +283,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="pricing" className="mx-auto w-full max-w-3xl px-6 py-20 sm:px-10">
+        <section id="pricing" className="mx-auto flex min-h-screen w-full max-w-3xl flex-col justify-center px-6 py-20 sm:px-10">
           <div className="text-center">
             <span className="inline-flex w-fit items-center rounded-full bg-tint px-4 py-1.5 text-xs font-semibold text-scan">
               Pricing
@@ -292,12 +292,12 @@ export default function Home() {
               One price. No subscriptions.
             </h2>
           </div>
-          <div className="mt-10 rounded-3xl bg-white p-10 text-center shadow-[0_2px_8px_rgba(23,23,23,0.05)]">
+          <div className="mx-auto mt-10 max-w-[360px] rounded-3xl bg-white p-10 text-center shadow-[0_2px_8px_rgba(23,23,23,0.05)]">
             <p className="font-display text-5xl font-extrabold text-ink">
               ₱499<span className="text-lg font-medium text-ink-soft"> one-time</span>
             </p>
             <ul className="mx-auto mt-6 flex max-w-xs flex-col gap-2 text-left text-sm text-ink-soft">
-              <li>· Any of our 10 templates</li>
+              <li>· Any of our 14 templates</li>
               <li>· Unlimited edits before checkout</li>
               <li>· Instant QR-based transfer to your phone</li>
               <li>· No app, no subscription, ever</li>

@@ -41,6 +41,21 @@ describe('cardDataSchema', () => {
     const result = cardDataSchema.safeParse({ ...valid, website: '', facebook: '' });
     expect(result.success).toBe(true);
   });
+
+  it('accepts a root-relative logoUrl path — the local-dev blob fallback returns one, not an absolute URL', () => {
+    const result = cardDataSchema.safeParse({ ...valid, logoUrl: '/uploads/logos/abc-123.png' });
+    expect(result.success).toBe(true);
+  });
+
+  it('still accepts an absolute logoUrl — the production Vercel Blob shape', () => {
+    const result = cardDataSchema.safeParse({ ...valid, logoUrl: 'https://blob.vercel-storage.com/logos/abc-123.png' });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects a logoUrl that is neither an absolute URL nor a root-relative path', () => {
+    const result = cardDataSchema.safeParse({ ...valid, logoUrl: 'not a url or path' });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('cardDataPartialSchema', () => {

@@ -7,6 +7,7 @@ import { PaymentQR } from '@/components/checkout/PaymentQR';
 import { PaymentForm } from '@/components/checkout/PaymentForm';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SiteFooter } from '@/components/layout/SiteFooter';
+import { extractErrorMessage } from '@/lib/api-error';
 
 interface OrderState {
   id: string;
@@ -54,7 +55,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ orderId: st
       form.set('file', file);
       const res = await fetch(`/api/orders/${orderId}/payment`, { method: 'POST', body: form });
       if (!res.ok) {
-        setError("We couldn't submit your payment. Please try again.");
+        setError(await extractErrorMessage(res, "We couldn't submit your payment. Please try again."));
         setSubmitting(false);
         return;
       }

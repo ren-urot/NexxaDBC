@@ -8,7 +8,7 @@ import type { CardData } from '@/lib/templates/types';
 interface InfoFormWrapperProps {
   data?: Partial<CardData>;
   onChange?: (patch: Partial<CardData>) => void;
-  onLogoUpload?: (file: File) => void;
+  onLogoUpload?: (file: File) => Promise<void>;
   allowLogo?: boolean;
 }
 
@@ -23,7 +23,7 @@ function InfoFormWrapper(props: InfoFormWrapperProps) {
         setData((prev) => ({ ...prev, ...patch }));
         props.onChange?.(patch);
       }}
-      onLogoUpload={props.onLogoUpload ?? (() => {})}
+      onLogoUpload={props.onLogoUpload ?? (() => Promise.resolve())}
     />
   );
 }
@@ -31,10 +31,10 @@ function InfoFormWrapper(props: InfoFormWrapperProps) {
 describe('InfoForm', () => {
   it('renders all required and optional fields', () => {
     render(<InfoFormWrapper data={{}} onChange={vi.fn()} onLogoUpload={vi.fn()} />);
-    for (const label of ['First name', 'Last name', 'Job title', 'Company', 'Mobile number', 'Email']) {
+    for (const label of ['First name', 'Last name', 'Job title', 'Mobile number', 'Email']) {
       expect(screen.getByLabelText(label)).toBeInTheDocument();
     }
-    for (const label of ['Website', 'Address', 'LinkedIn', 'Facebook', 'Instagram', 'WhatsApp', 'Messenger']) {
+    for (const label of ['Company', 'Website', 'Address', 'LinkedIn', 'Facebook', 'Instagram', 'WhatsApp', 'Messenger']) {
       expect(screen.getByLabelText(label)).toBeInTheDocument();
     }
   });
@@ -69,10 +69,25 @@ describe('InfoForm', () => {
   });
 
   it('calls onLogoUpload when a logo file is chosen', async () => {
-    const onLogoUpload = vi.fn();
+    const onLogoUpload = vi.fn().mockResolvedValue(undefined);
     render(<InfoFormWrapper data={{}} onChange={vi.fn()} onLogoUpload={onLogoUpload} />);
     const file = new File(['bytes'], 'logo.png', { type: 'image/png' });
     await userEvent.upload(screen.getByLabelText('Company logo'), file);
     expect(onLogoUpload).toHaveBeenCalledWith(file);
+  });
+
+  it('shows no upload confirmation before a logo has been saved', () => {
+    render(<InfoForm data={{}} onChange={vi.fn()} onLogoUpload={vi.fn()} />);
+    expect(screen.queryByText(/logo uploaded/i)).not.toBeInTheDocument();
+  });
+
+  it('shows upload confirmation once the draft has a saved logo', () => {
+    // The native file input always resets to "No file chosen" regardless of
+    // outcome, so this confirmation — driven by the parent-confirmed
+    // data.logoUrl, the way BuilderWizard's setDraft(await res.json()) sets
+    // it after a successful upload — is the only real signal the upload
+    // actually landed.
+    render(<InfoForm data={{ logoUrl: '/uploads/logo.png' }} onChange={vi.fn()} onLogoUpload={vi.fn()} />);
+    expect(screen.getByText(/logo uploaded/i)).toBeInTheDocument();
   });
 });

@@ -12,7 +12,10 @@ export function ModernVertical({ data, style }: TemplateProps) {
         className="absolute -top-10 -right-16 w-48 h-48 rotate-45"
         style={{ background: accent, opacity: 0.25 }}
       />
-      {data.logoUrl && <img src={data.logoUrl} alt={`${data.company} logo`} className="h-10 mb-6 relative" />}
+      {data.logoUrl && <img src={data.logoUrl} alt={data.company ? `${data.company} logo` : 'Company logo'} className="h-10 mb-6 relative" />}
+      {data.company && (
+        <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-300 relative`}>{data.company}</p>
+      )}
       <h1 className={`${fontSizeClass(5, style.fontSizeStep)} font-black relative`}>
         {data.firstName}
         <br />
@@ -21,7 +24,6 @@ export function ModernVertical({ data, style }: TemplateProps) {
       <p className={`${fontSizeClass(2, style.fontSizeStep)} font-semibold mt-2 relative`} style={{ color: accent }}>
         {data.jobTitle}
       </p>
-      <p className={`${fontSizeClass(2, style.fontSizeStep)} text-gray-300 relative`}>{data.company}</p>
       <div className="mt-8 text-sm text-gray-300 space-y-1 relative">
         <p>{data.mobile}</p>
         <p>{data.email}</p>

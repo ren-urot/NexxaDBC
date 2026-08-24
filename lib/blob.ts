@@ -28,6 +28,7 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   'image/png': 'png',
   'image/jpeg': 'jpg',
   'image/webp': 'webp',
+  'image/svg+xml': 'svg',
 };
 
 function safeExtension(file: File): string {
@@ -59,9 +60,14 @@ async function delLocal(url: string): Promise<void> {
 }
 
 export async function uploadLogo(file: File, draftId: string): Promise<string> {
-  const pathname = `logos/${draftId}-${Date.now()}.${safeExtension(file)}`;
-  if (!hasBlobToken()) return putLocal(pathname, file);
-  const blob = await put(pathname, file, { access: 'public' });
+  // Loaded lazily so the far more common PNG/JPEG/WebP logo upload never
+  // pulls jsdom's module graph in at all — see the comment on sanitizeSvg
+  // for why that matters.
+  const upload =
+    file.type === 'image/svg+xml' ? await (await import('./svg-sanitize')).sanitizeSvg(file) : file;
+  const pathname = `logos/${draftId}-${Date.now()}.${safeExtension(upload)}`;
+  if (!hasBlobToken()) return putLocal(pathname, upload);
+  const blob = await put(pathname, upload, { access: 'public' });
   return blob.url;
 }
 

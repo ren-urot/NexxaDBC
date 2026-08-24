@@ -4,7 +4,7 @@ export interface CardData {
   firstName: string;
   lastName: string;
   jobTitle: string;
-  company: string;
+  company?: string;
   mobile: string;
   email: string;
   address?: string;
@@ -31,7 +31,8 @@ export type TemplateCategory =
   | 'minimal'
   | 'executive'
   | 'creative'
-  | 'signature';
+  | 'signature'
+  | 'skyline';
 
 export interface CustomizableFieldBounds {
   accentColor: boolean;

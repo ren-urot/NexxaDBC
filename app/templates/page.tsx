@@ -45,7 +45,7 @@ export default function TemplatesPage() {
         <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-scan">Templates</p>
         <h1 className="font-display text-4xl font-medium tracking-tight text-ink">Choose your design.</h1>
         <p className="mt-3 max-w-lg text-ink-soft">
-          Twelve templates, six styles, two formats. Every preview below is the real thing, no
+          Fourteen templates, seven styles, two formats. Every preview below is the real thing, no
           placeholders swapped in later.
         </p>
         {error && (

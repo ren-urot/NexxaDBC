@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dbc-holder-v1';
-const SHELL_URLS = ['/holder', '/holder/install', '/manifest.webmanifest', '/icon'];
+const CACHE_NAME = 'dbc-holder-v2';
+const SHELL_URLS = ['/holder', '/holder/install', '/holder/scan', '/manifest.webmanifest', '/icon'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL_URLS)));
