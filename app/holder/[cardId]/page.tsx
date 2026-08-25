@@ -91,7 +91,9 @@ export default function HolderCardPage({ params }: { params: Promise<{ cardId: s
                 className="absolute z-30 rounded-md bg-white p-1.5 shadow-md"
                 style={{
                   bottom: `${qrSpec.bottom}px`,
-                  ...('right' in qrSpec ? { right: `${qrSpec.right}px` } : { left: `${qrSpec.left}px` }),
+                  ...('right' in qrSpec
+                    ? { right: `${qrSpec.right}px` }
+                    : { left: '50%', transform: 'translateX(-50%)' }),
                 }}
               >
                 <QRCodeSVG value={qrValue} size={qrSpec.size} />
